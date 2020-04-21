@@ -12,11 +12,11 @@
         android:layout_height="wrap_content"
         android:text="Hello World!"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.473"
+        app:layout_constraintHorizontal_bias="0.485"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.484" />
+        app:layout_constraintVertical_bias="0.375" />
 
     <TextView
         android:id="@+id/gry"
@@ -29,7 +29,30 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/acc" />
+        app:layout_constraintTop_toBottomOf="@+id/acc"
+        app:layout_constraintVertical_bias="0.169" />
+
+    <TextView
+        android:id="@+id/accText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        app:layout_constraintBottom_toTopOf="@+id/gyrText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gry"
+        app:layout_constraintVertical_bias="0.86" />
+
+    <TextView
+        android:id="@+id/gyrText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gry"
+        app:layout_constraintVertical_bias="0.756" />
 
     <TextView
         android:id="@+id/conter"

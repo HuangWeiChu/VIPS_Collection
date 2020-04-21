@@ -8,26 +8,17 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.format.Time;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextClock;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import java.io.IOException;
-import java.io.SyncFailedException;
-import java.sql.Date;
 import java.util.Calendar;
-import java.util.TimeZone;
 import java.util.Timer;
-import java.util.TimerTask;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -42,6 +33,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Sensor mAccelerometers;
     private Sensor mGyroscope;
     TextView acc,gry,con,re;
+    TextView accText, gyrText;
     Timer timer;
     public float[] gravity = new float[3];   //重力在设备x、y、z轴上的分量
     public float[] motion = new float[3];  //过滤掉重力后，加速度在x、y、z上的分量
@@ -56,9 +48,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float Xvalue=0;
     float Yvalue=0;
     float Zvalue=0;
-    String uploadvalueX="";
-    String uploadvalueY="";
-    String uploadvalueZ="";
+    String uploadAx = "";
+    String uploadAy = "";
+    String uploadAz = "";
+    String uploadGx = "";
+    String uploadGy = "";
+    String uploadGz = "";
     //-------系統時間--------//
     private TextClock tClock;
     int year ;
@@ -80,9 +75,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         tClock = (TextClock) findViewById(R.id.textClock);
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mAccelerometers = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mGyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         //mGyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         acc=(TextView)findViewById(R.id.acc);
         gry=(TextView)findViewById(R.id.gry);
+        accText=(TextView)findViewById(R.id.accText);
+        gyrText=(TextView)findViewById(R.id.gyrText);
         re=(TextView)findViewById(R.id.respone);
         con=(TextView)findViewById(R.id.conter);
         Button btn =(Button) findViewById(R.id.button);
@@ -193,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 timer.schedule(task, 100, 100);
             }*/
-        }
+    }
 
 
     @Override
@@ -201,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         super.onResume();
         sensorManager.registerListener(this,mAccelerometers,SensorManager.SENSOR_DELAY_NORMAL);
-        //sensorManager.registerListener(this,mGyroscope,SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this,mGyroscope,SensorManager.SENSOR_DELAY_NORMAL);
     }
     @Override
     protected void onPause() {
@@ -213,61 +211,89 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
 
-            Calendar c = Calendar.getInstance();
+        Calendar c = Calendar.getInstance();
 
 
 
         //String value = "X-axis" + String.valueOf(sensorEvent.values[0]) + "\n" + "Y-axis" + String.valueOf(sensorEvent.values[1]) + "\n" + "Z-axis" + String.valueOf(sensorEvent.values[2]) + "\n";
-            if (sensorEvent.sensor.equals(mAccelerometers)&& matchpoint) {
+        if (sensorEvent.sensor.equals(mAccelerometers)&& matchpoint) {
 
-                if(tt-startTime>=1)
-                {
-                    if(counter==0) {
+            if(tt-startTime>=1){
+                if(counter==0) {
 
 
-                        Xstr="";
-                        Ystr="";
-                        Zstr="";
-
-                    }
-                    startTime=tt;
-                    for (int i = 0; i < 3; i++) {
-                        gravity[i] = (float) (0.1 * sensorEvent.values[i] + 0.9 * gravity[i]);
-                        motion[i] = sensorEvent.values[i] - gravity[i];
-                    }
-                    counter++;
-
-                    //value = "X-axis"+String.valueOf(motion[0])+"\n"+"Y-axis"+String.valueOf(motion[1])+"\n"+"Z-axis"+String.valueOf(motion[2])+"\n";
-                    total = (float)(Math.round((float) (Math.pow((Math.pow(motion[0], 2) + Math.pow(motion[1], 2) + Math.pow(motion[2], 2)), 0.5))*10000))/10000;
-
-                    //value=value+String.valueOf(total)+",";
-                    Xvalue=(float)((Math.round(motion[0]*1000)))/1000;
-                    Yvalue=(float)((Math.round(motion[1]*1000)))/1000;
-                    Zvalue=(float)((Math.round(motion[2]*1000)))/1000;
-                    Xstr+=String.valueOf(Xvalue)+",";
-                    Ystr+=String.valueOf(Yvalue)+",";
-                    Zstr+=String.valueOf(Zvalue)+",";
-
+                    Xstr="";
+                    Ystr="";
+                    Zstr="";
 
                 }
-                if(counter==10){
-                    startTime=0;
-                    counter=0;
-                    tt=0;
-                    uploadvalueX=Xstr;
-                    uploadvalueY=Ystr;
-                    uploadvalueZ=Zstr;
-
+                startTime=tt;
+                for (int i = 0; i < 3; i++) {
+                    gravity[i] = (float) (0.1 * sensorEvent.values[i] + 0.9 * gravity[i]);
+                    motion[i] = sensorEvent.values[i] - gravity[i];
                 }
+                counter++;
+
+                //value = "X-axis"+String.valueOf(motion[0])+"\n"+"Y-axis"+String.valueOf(motion[1])+"\n"+"Z-axis"+String.valueOf(motion[2])+"\n";
+                total = (float)(Math.round((float) (Math.pow((Math.pow(motion[0], 2) + Math.pow(motion[1], 2) + Math.pow(motion[2], 2)), 0.5))*10000))/10000;
+
+                //value=value+String.valueOf(total)+",";
+                Xvalue=(float)((Math.round(motion[0]*1000)))/1000;
+                Yvalue=(float)((Math.round(motion[1]*1000)))/1000;
+                Zvalue=(float)((Math.round(motion[2]*1000)))/1000;
+                Xstr+=String.valueOf(Xvalue)+",";
+                Ystr+=String.valueOf(Yvalue)+",";
+                Zstr+=String.valueOf(Zvalue)+",";
+
 
             }
+            if(counter==10){
+                startTime=0;
+                counter=0;
+                tt=0;
+                uploadAx = Xstr;
+                uploadAy = Ystr;
+                uploadAz = Zstr;
+            }
+        }
 
         acc.setText("TotalValue:"+String.valueOf(second)+":"+String.valueOf(total)+"\n");
         gry.setText("X:"+Xstr+"\n"+"Y:"+Ystr+"\n"+"Z:"+Zstr+"\n");
 
-            /*if (sensorEvent.sensor.equals(mGyroscope)) {
+        if (sensorEvent.sensor.equals(mAccelerometers) && matchpoint) {
+            Xstr=String.valueOf(sensorEvent.values[0])+",";
+            Ystr=String.valueOf(sensorEvent.values[1])+",";
+            Zstr=String.valueOf(sensorEvent.values[2])+",";
+            accText.setText("Ax:"+Xstr+"\n"+"Ay:"+Ystr+"\n"+"Az:"+Zstr+"\n");
+        }
 
-            }*/
+        if (sensorEvent.sensor.equals(mGyroscope) && matchpoint) {
+            if(tt-startTime>=1) {
+                if(counter==0) {
+                    Xstr="";
+                    Ystr="";
+                    Zstr="";
+                }
+                startTime=tt;
+                counter++;
+
+                Xstr=String.valueOf(sensorEvent.values[0])+",";
+                Ystr=String.valueOf(sensorEvent.values[1])+",";
+                Zstr=String.valueOf(sensorEvent.values[2])+",";
+
+
+            }
+            if(counter==10) {
+                startTime=0;
+                counter=0;
+                tt=0;
+                uploadGx=Xstr;
+                uploadGy=Ystr;
+                uploadGz=Zstr;
+            }
+            gyrText.setText("Gx:"+Xstr+"\n"+"Gy:"+Ystr+"\n"+"Gz:"+Zstr+"\n");
+        }
+
         /*if(counter%50 == 0) {
             acc.setText("TotalValue:"+String.valueOf(total)+"\n");
             gry.setText(value);
@@ -295,7 +321,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             minute = c.get(Calendar.MINUTE);
             second = c.get(Calendar.SECOND);
 
- ;
+            ;
             if(second!=pres){
                 tt += 1;
                 con.setText("時間" + year + "年" + month + "月" + day + "日" + hour + ":" + minute + ":" + second);
@@ -320,7 +346,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     //String url = "https://reqres.in/api/users?page=2";
 
                     String d = String.valueOf(year) + "-" + String.valueOf(month) + "-" + String.valueOf(day) + " " + String.valueOf(hour) + ":" + String.valueOf(minute) + ":" + String.valueOf(second);
-                    String url = "http://140.134.26.135/VIPS/accupdate.php?xacc=" + uploadvalueX + "&yacc="+uploadvalueY+"&zacc="+uploadvalueZ+"&date=" + d;
+                    String url = "http://140.134.26.138/VIPS/accupdate.php?xacc=" + uploadAx + "&yacc="+ uploadAy +"&zacc="+ uploadAz +"&date=" + d;
                     System.out.println(url);
                     Request request = new Request.Builder()
                             .url(url)
@@ -346,6 +372,33 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             }
                         }
                     });
+/*
+                    String urlG = "http://140.134.26.138/VIPS/gyrupdate.php?xgyr=" + uploadGx + "&ygyr="+ uploadGy +"&zgyr="+ uploadGz +"&date=" + d;
+                    System.out.println(url);
+                    Request requestG = new Request.Builder()
+                            .url(urlG)
+                            .build();
+
+                    client.newCall(requestG).enqueue(new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            if (response.isSuccessful()) {
+                                final String myResponse = response.body().string();
+
+                                MainActivity.this.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        re.setText("upload...");
+                                    }
+                                });
+                            }
+                        }
+                    });*/
 
                 }
 
