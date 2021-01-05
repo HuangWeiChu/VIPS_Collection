@@ -27,7 +27,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class MainActivity_original extends AppCompatActivity implements SensorEventListener {
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
     private Thread thread;
     private SensorManager  sensorManager;
     private Sensor mAccelerometers;
@@ -551,10 +551,10 @@ public class MainActivity_original extends AppCompatActivity implements SensorEv
                                 final String myResponse = response.body().string();
                                 Log.d("[Test-upload]", "<Response> " + myResponse);
                                 if (response.isSuccessful()) {
-                                    MainActivity_original.this.runOnUiThread(new Runnable() {
+                                    MainActivity.this.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            MainActivity_original.this.response.setText("upload...");
+                                            MainActivity.this.response.setText("upload...");
                                         }
                                     });
                                     Log.d("[Test-upload]", "<Success>");
