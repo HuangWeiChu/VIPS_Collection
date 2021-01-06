@@ -32,7 +32,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private SensorManager  sensorManager;
     private Sensor mAccelerometers;
     private Sensor mGyroscope;
-    private Sensor mLinearAccelerometers;
     TextView acc, gyr, con, response, staus, queue, phoneText;
     TextView accText, gyrText;
     float total=0;
@@ -40,40 +39,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public float[] motion = new float[3];  //过滤掉重力后，加速度在x、y、z上的分量
     private int countA = 0;
     private int countG = 0;
-    private int countL = 0;
     int TimeA;
     int TimeG;
-    int TimeL;
     int startTimeA;
     int startTimeG;
-    int startTimeL;
     int endTimeA;
     int endTimeG;
-    int endTimeL;
     int startA = 0;
     int startG = 0;
-    int startL = 0;
     float Xvalue = 0;
     float Yvalue = 0;
     float Zvalue = 0;
-    float XLvalue = 0;
-    float YLvalue = 0;
-    float ZLvalue = 0;
-    float XOvalue = 0;
-    float YOvalue = 0;
-    float ZOvalue = 0;
     String XAstr = "";
     String YAstr = "";
     String ZAstr = "";
     String XGstr = "";
     String YGstr = "";
     String ZGstr = "";
-    String XLstr = "";
-    String YLstr = "";
-    String ZLstr = "";
-    String XOstr = "";
-    String YOstr = "";
-    String ZOstr = "";
     String uploadTime = "";
     String uploadAx = "";
     String uploadAy = "";
@@ -145,7 +127,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //tClock = (TextClock) findViewById(R.id.textClock);
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mAccelerometers = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mLinearAccelerometers = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         mGyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         acc=(TextView)findViewById(R.id.acc);
         gyr =(TextView)findViewById(R.id.gry);
@@ -208,17 +189,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onResume() {
         super.onResume();
-        //sensorManager.registerListener(this,mAccelerometers,SensorManager.SENSOR_DELAY_NORMAL);
-        //sensorManager.registerListener(this,mGyroscope,SensorManager.SENSOR_DELAY_NORMAL);
-
-        //ensorManager.registerListener(this,mLinearAccelerometers,SensorManager.SENSOR_DELAY_UI);
-        //sensorManager.registerListener(this,mAccelerometers,SensorManager.SENSOR_DELAY_UI);
-        //sensorManager.registerListener(this,mGyroscope,SensorManager.SENSOR_DELAY_UI);
-
-        //sensorManager.registerListener(this,mLinearAccelerometers,SensorManager.SENSOR_DELAY_GAME);
-        //sensorManager.registerListener(this,mAccelerometers,SensorManager.SENSOR_DELAY_GAME);
-        //sensorManager.registerListener(this,mGyroscope,SensorManager.SENSOR_DELAY_GAME);
-
         sensorManager.registerListener(this,mLinearAccelerometers,SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(this,mAccelerometers,SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(this,mGyroscope,SensorManager.SENSOR_DELAY_FASTEST);
@@ -233,55 +203,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
 
-        if (event.sensor.equals(mLinearAccelerometers) && matchpoint) {
-            if (countL == 0) {
-                XLstr = "";
-                YLstr = "";
-                ZLstr = "";
-                startTimeL = Calendar.getInstance().get(Calendar.MILLISECOND);
-                //Log.d("[Test]", "\t--startTimeG: " + startTimeG);
-
-                if (Calendar.getInstance().get(Calendar.MILLISECOND) < 100)
-                    startL = 1;
-            }
-
-            if (startL == 1) {
-
-                countL++;
-                //Log.d("[Test]", "[TimeNowG]: " + Calendar.getInstance().get(Calendar.MILLISECOND));
-                //Log.d("[Test]", "\t--countG: " + countG);
-
-                Log.d("[Testg]", "Acc[Linear  ] - " +
-                        "X: " + event.values[0] + ", Y: " + event.values[1] + ", Z: " + event.values[2] + "\n");
-
-                XLvalue = (float) ((Math.round(event.values[0] * 1000))) / 1000;
-                YLvalue = (float) ((Math.round(event.values[1] * 1000))) / 1000;
-                ZLvalue = (float) ((Math.round(event.values[2] * 1000))) / 1000;
-                XLstr += String.valueOf(XLvalue) + ",";
-                YLstr += String.valueOf(YLvalue) + ",";
-                ZLstr += String.valueOf(ZLvalue) + ",";
-
-                if (countL == 90) {
-                    countL = 0;
-                    startL = 0;
-                    uploadL = 1;
-                    if (startflag) {
-                        //uploadLx_queue.offer(XLstr);
-                        //uploadLy_queue.offer(YLstr);
-                        //uploadLz_queue.offer(ZLstr);
-                    }
-
-                    endTimeL = Calendar.getInstance().get(Calendar.MILLISECOND);
-                    TimeL = endTimeL - startTimeL;
-                    if (TimeL < 0)
-                        TimeL += 1000;
-                    //Log.d("[Test]", "\t\t--endTimeG: " + endTimeG);
-                    //Log.d("[Test]", "\t\t--TimeG: " + TimeG);
-                    Log.d("[Test]","AccL - \nX:"+XLstr+"\n"+"Y:"+YLstr+"\n"+"Z:"+ZLstr+"\n");
-                }
-            }
-        }
-
         if (event.sensor.equals(mAccelerometers) && matchpoint) {
             int TimeNowA = Calendar.getInstance().get(Calendar.MILLISECOND);
 
@@ -289,9 +210,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 XAstr = "";
                 YAstr = "";
                 ZAstr = "";
-                XOstr = "";
-                YOstr = "";
-                ZOstr = "";
                 startTimeA = Calendar.getInstance().get(Calendar.MILLISECOND);
                 //Log.d("[Test]", "\t--startTimeA: " + startTimeA);
 
@@ -335,25 +253,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     gravity[i] = (float) (0.1 * event.values[i] + 0.9 * gravity[i]);
                     motion[i] = event.values[i] - gravity[i];
                 }
-                Log.d("[Testg]","Acc[Original] - " +
-                        "X: " + event.values[0] + ", Y: " + event.values[1] + ", Z: " + event.values[2] + "\n");
-                Log.d("[Testg]","Acc[Diff    ] - " +
-                        "X: " + motion[0] + ", Y: " + motion[1] + ", Z: " + motion[2] + "\n");
-
-                total = (float) (Math.round((float) (Math.pow((Math.pow(motion[0], 2) + Math.pow(motion[1], 2) + Math.pow(motion[2], 2)), 0.5)) * 10000)) / 10000;
 
                 Xvalue = (float) ((Math.round(motion[0] * 1000))) / 1000;
                 Yvalue = (float) ((Math.round(motion[1] * 1000))) / 1000;
                 Zvalue = (float) ((Math.round(motion[2] * 1000))) / 1000;
-                XOvalue = (float) ((Math.round(event.values[0] * 1000))) / 1000;
-                YOvalue = (float) ((Math.round(event.values[1] * 1000))) / 1000;
-                ZOvalue = (float) ((Math.round(event.values[2] * 1000))) / 1000;
                 XAstr += String.valueOf(Xvalue) + ",";
                 YAstr += String.valueOf(Yvalue) + ",";
                 ZAstr += String.valueOf(Zvalue) + ",";
-                XOstr += String.valueOf(XOvalue) + ",";
-                YOstr += String.valueOf(YOvalue) + ",";
-                ZOstr += String.valueOf(ZOvalue) + ",";
 
                 if (countA == 90) {
                     countA = 0;
@@ -364,9 +270,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         uploadAx_queue.offer(XAstr);
                         uploadAy_queue.offer(YAstr);
                         uploadAz_queue.offer(ZAstr);
-                        //uploadOx_queue.offer(XOstr);
-                        //uploadOy_queue.offer(YOstr);
-                        //uploadOz_queue.offer(ZOstr);
                     }
 
                     endTimeA = Calendar.getInstance().get(Calendar.MILLISECOND);
@@ -379,13 +282,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             }
         }
-
-        /*
-        if (event.sensor.equals(mAccelerometers) && matchpoint) {
-            XAstr=String.valueOf(event.values[0])+",";
-            YAstr=String.valueOf(event.values[1])+",";
-            ZAstr=String.valueOf(event.values[2])+",";
-        }*/
 
         if (event.sensor.equals(mGyroscope) && matchpoint) {
             /*
@@ -495,10 +391,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             matchpoint = true;
 
-            if (uploadA == 1  && uploadG == 1 && uploadL == 1) {
+            if (uploadA == 1  && uploadG == 1) {
                 uploadA = 0;
                 uploadG = 0;
-                uploadL = 0;
                 if (uploadflag) {
 
                     Log.d("[Test]", "<SEND!!!!!>");
