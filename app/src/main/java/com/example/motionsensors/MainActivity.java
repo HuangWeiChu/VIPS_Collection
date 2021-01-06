@@ -82,15 +82,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     int presecond=61;
 
     /*
-    2:sony
-    3:M8
-    4:mi
+    2:sony-330
+    3:M8-90
+    4:mi-90
     */
-    int phonenum = 3;
+    int phonenum = 2;
     int phoneNum = phonenum;
-    int slide2 = 0;
+    int slide2 = -1;
     int slide3 = 0;
-    int slide4 = 0;
+    int slide4 = -1;
+    int collection = 330;
 
     String msecstr = "";
     //-------系統時間--------//
@@ -188,7 +189,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onResume() {
         super.onResume();
-        sensorManager.registerListener(this,mLinearAccelerometers,SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(this,mAccelerometers,SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(this,mGyroscope,SensorManager.SENSOR_DELAY_FASTEST);
     }
@@ -259,7 +259,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 YAstr += Yvalue + ",";
                 ZAstr += Zvalue + ",";
 
-                if (countA == 90) {
+                if (countA == collection) {
                     countA = 0;
                     startA = 0;
                     uploadA = 1;
@@ -308,7 +308,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 startTimeG = Calendar.getInstance().get(Calendar.MILLISECOND);
                 //Log.d("[Test]", "\t--startTimeG: " + startTimeG);
 
-                if (Calendar.getInstance().get(Calendar.MILLISECOND) < 100)
+                if (Calendar.getInstance().get(Calendar.MILLISECOND) < 10 && Calendar.getInstance().get(Calendar.MILLISECOND) > 0)
                     startG = 1;
             }
 
@@ -321,7 +321,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 YGstr += event.values[1] + ",";
                 ZGstr += event.values[2] + ",";
 
-                if (countG == 90) {
+                if (countG == collection) {
                     countG = 0;
                     startG = 0;
                     uploadG = 1;
@@ -416,7 +416,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     uploadOy = uploadOy_queue.poll();
                     uploadOz = uploadOz_queue.poll();
 
-                    if (uploadTime != null) {
+                    if (uploadTime != null && uploadAx != null && uploadGx != null) {
                         String url = "http://140.134.26.138/VIPS/accupdate" + phoneNum + ".php?" +
                                 "xacc=" + uploadAx + "&yacc=" + uploadAy + "&zacc="+ uploadAz +
                                 "&xgyr=" + uploadGx + "&ygyr="+ uploadGy + "&zgyr="+ uploadGz +
