@@ -32,9 +32,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private SensorManager  sensorManager;
     private Sensor mAccelerometers;
     private Sensor mGyroscope;
-    TextView acc, gyr, con, response, staus, queue, phoneText;
+    TextView acc, gyr, con, response, status, queue, phoneText;
     TextView accText, gyrText;
-    float total=0;
     public float[] gravity = new float[3];   //重力在设备x、y、z轴上的分量
     public float[] motion = new float[3];  //过滤掉重力后，加速度在x、y、z上的分量
     private int countA = 0;
@@ -128,25 +127,25 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mAccelerometers = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mGyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        acc=(TextView)findViewById(R.id.acc);
-        gyr =(TextView)findViewById(R.id.gry);
-        accText=(TextView)findViewById(R.id.accText);
-        gyrText=(TextView)findViewById(R.id.gyrText);
-        response =(TextView)findViewById(R.id.respone);
-        staus =(TextView)findViewById(R.id.staus);
-        queue =(TextView)findViewById(R.id.queue);
-        con=(TextView)findViewById(R.id.conter);
-        phoneText=(TextView)findViewById(R.id.phoneNum);
+        acc= findViewById(R.id.acc);
+        gyr = findViewById(R.id.gry);
+        accText= findViewById(R.id.accText);
+        gyrText= findViewById(R.id.gyrText);
+        response = findViewById(R.id.respone);
+        status = findViewById(R.id.staus);
+        queue = findViewById(R.id.queue);
+        con= findViewById(R.id.conter);
+        phoneText= findViewById(R.id.phoneNum);
         phoneText.setText("Phone: " + phonenum);
-        Button start =(Button) findViewById(R.id.start);
-        Button pause =(Button) findViewById(R.id.pause);
-        Button stop =(Button) findViewById(R.id.stop);
+        Button start = findViewById(R.id.start);
+        Button pause = findViewById(R.id.pause);
+        Button stop = findViewById(R.id.stop);
         RequestQueue ExampleRequestQueue = Volley.newRequestQueue(this);
 
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                staus.setText("Start");
+                status.setText("Start");
                 startflag = true;
                 uploadflag = true;
             }
@@ -155,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                staus.setText("Close");
+                status.setText("Close");
                 response.setText("waiting...");
                 startflag = false;
                 uploadflag = false;
@@ -165,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         pause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                staus.setText("Pause");
+                status.setText("Pause");
                 startflag = false;
                 uploadflag = true;
             }
@@ -226,16 +225,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         startTime.add(Calendar.SECOND, slide4);
                     }
 
-                    int uploadyear = startTime.get(Calendar.YEAR);
-                    int uploadmonth = startTime.get(Calendar.MONTH)+1;
-                    int uploadday = startTime.get(Calendar.DAY_OF_MONTH);
-                    int uploadhour = startTime.get(Calendar.HOUR_OF_DAY);
-                    int uploadminute = startTime.get(Calendar.MINUTE);
-                    int uploadsecond = startTime.get(Calendar.SECOND);
+                    int uploadYear = startTime.get(Calendar.YEAR);
+                    int uploadMonth = startTime.get(Calendar.MONTH)+1;
+                    int uploadDay = startTime.get(Calendar.DAY_OF_MONTH);
+                    int uploadHour = startTime.get(Calendar.HOUR_OF_DAY);
+                    int uploadMinute = startTime.get(Calendar.MINUTE);
+                    int uploadSecond = startTime.get(Calendar.SECOND);
                     int uploadmsec = startTime.get(Calendar.MILLISECOND);
 
-                    String upload = String.valueOf(uploadyear) + "-" + String.valueOf(uploadmonth) + "-" + String.valueOf(uploadday) + " " + String.valueOf(uploadhour) + ":" + String.valueOf(uploadminute) + ":" + String.valueOf(uploadsecond);
-                    //+ "." + String.valueOf(uploadmsec);
+                    String upload = uploadYear + "-" + uploadMonth + "-" + uploadDay + " " + uploadHour + ":" + uploadMinute + ":" + uploadSecond;// + "." + uploadmsec;
                     Log.d("[Test]", "[uploadTime]: " + upload);
 
                     if(startflag) {
@@ -257,9 +255,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 Xvalue = (float) ((Math.round(motion[0] * 1000))) / 1000;
                 Yvalue = (float) ((Math.round(motion[1] * 1000))) / 1000;
                 Zvalue = (float) ((Math.round(motion[2] * 1000))) / 1000;
-                XAstr += String.valueOf(Xvalue) + ",";
-                YAstr += String.valueOf(Yvalue) + ",";
-                ZAstr += String.valueOf(Zvalue) + ",";
+                XAstr += Xvalue + ",";
+                YAstr += Yvalue + ",";
+                ZAstr += Zvalue + ",";
 
                 if (countA == 90) {
                     countA = 0;
@@ -319,9 +317,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 //Log.d("[Test]", "[TimeNowG]: " + Calendar.getInstance().get(Calendar.MILLISECOND));
                 //Log.d("[Test]", "\t--countG: " + countG);
 
-                XGstr += String.valueOf(event.values[0]) + ",";
-                YGstr += String.valueOf(event.values[1]) + ",";
-                ZGstr += String.valueOf(event.values[2]) + ",";
+                XGstr += event.values[0] + ",";
+                YGstr += event.values[1] + ",";
+                ZGstr += event.values[2] + ",";
 
                 if (countG == 90) {
                     countG = 0;
