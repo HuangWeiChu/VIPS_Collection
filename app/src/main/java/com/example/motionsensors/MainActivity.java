@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     /*
     2:sony-330
     3:M8-90
-    4:mi-90
+    4:mi-90(9s/4s)
     */
     int phoneNum = 2;
     int slide2 = -1;
@@ -99,10 +99,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     int slide4 = -1;
 
     int collection = 90;
+    int timeLimit = 50;
 
     //-------啟動權限--------//
     Boolean startFlag = false;
     Boolean uploadFlag = false;
+    Boolean errorFlag = false;
     Boolean matchPoint = false;
 
     public static Handler handler = new Handler();
@@ -149,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 response.setText("preparing...");
                 startFlag = true;
                 uploadFlag = true;
+                errorFlag = false;
             }
         });
 
@@ -159,6 +162,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 response.setText("waiting...");
                 startFlag = false;
                 uploadFlag = false;
+                errorFlag = false;
             }
         });
 
@@ -168,6 +172,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 status.setText("Pause");
                 startFlag = false;
                 uploadFlag = true;
+                errorFlag = false;
             }
         });
 
@@ -204,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 //Log.d("[Time_Acc]", "\tstartTimeA: " + startTimeA);
 
 
-                if (Calendar.getInstance().get(Calendar.MILLISECOND) < 10 && Calendar.getInstance().get(Calendar.MILLISECOND) > 0) {
+                if (Calendar.getInstance().get(Calendar.MILLISECOND) <= timeLimit && Calendar.getInstance().get(Calendar.MILLISECOND) > 0) {
                     startA = 1;
 
                     Calendar startTime = Calendar.getInstance();
@@ -302,7 +307,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 startTimeG = Calendar.getInstance().get(Calendar.MILLISECOND);
                 //Log.d("[Time_Gyr]", "\tstartTimeG: " + startTimeG);
 
-                if (Calendar.getInstance().get(Calendar.MILLISECOND) < 10 && Calendar.getInstance().get(Calendar.MILLISECOND) > 0)
+                if (Calendar.getInstance().get(Calendar.MILLISECOND) <= timeLimit && Calendar.getInstance().get(Calendar.MILLISECOND) > 0)
                     startG = 1;
             }
 
@@ -412,6 +417,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         client.newCall(request).enqueue(new Callback() {
                             @Override
                             public void onFailure(Call call, IOException e) {
+                                errorFlag = true;
+                                myResponse = "<html><i>" + e.getMessage() + "</i></html>";
                                 Log.d("[Upload]", "<Error> " + e.getMessage());
                                 Log.e("[ERROR]!!!!!", "Failure", e);
                                 e.printStackTrace();
@@ -427,16 +434,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                             MainActivity.this.response.setText("uploading...");
                                         }
                                     });
-                                    Intent intent = new Intent();
-                                    intent.setClass(MainActivity.this, TestActivity.class);
-                                    startActivity(intent);
                                     Log.d("[Upload]", "<Success> " + myResponse);
                                 } else {
+                                    errorFlag = true;
                                     Log.d("[Upload]", "<NotSuccess>");
                                     Log.e("[ERROR]!!!!!", "NotSuccess");
                                 }
                             }
                         });
+
+                        // 當傳送錯誤時轉跳頁面
+                        if (errorFlag) {
+                            errorFlag = false;
+                            Intent intent = new Intent();
+                            intent.setClass(MainActivity.this, TestActivity.class);
+                            startActivity(intent);
+                        }
                     }
 
                 }

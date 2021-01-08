@@ -17,7 +17,6 @@
   <component name="ChangeListManager">
     <list default="true" id="a9c72e75-5966-43e8-9329-41c49cc85d22" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/motionsensors/MainActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/motionsensors/MainActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/motionsensors/TestActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/motionsensors/TestActivity.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -41,20 +40,20 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/src/main/java/com/example/motionsensors/MainActivity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="121">
-              <caret line="424" column="55" lean-forward="true" selection-end-line="445" />
+            <state relative-caret-position="436">
+              <caret line="460" selection-start-line="460" selection-end-line="460" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#3834#4113#0" expanded="true" />
-                <element signature="e#4112#4113#0" expanded="true" />
-                <element signature="e#4149#4428#0" expanded="true" />
-                <element signature="e#4427#4428#0" expanded="true" />
-                <element signature="e#4465#4695#0" expanded="true" />
-                <element signature="e#4694#4695#0" expanded="true" />
-                <element signature="e#11871#15931#0" expanded="true" />
-                <element signature="e#15151#15453#0" expanded="true" />
-                <element signature="e#15452#15453#0" expanded="true" />
-                <element signature="e#15930#15931#0" expanded="true" />
+                <element signature="e#3865#4179#0" expanded="true" />
+                <element signature="e#4178#4179#0" expanded="true" />
+                <element signature="e#4215#4529#0" expanded="true" />
+                <element signature="e#4528#4529#0" expanded="true" />
+                <element signature="e#4566#4831#0" expanded="true" />
+                <element signature="e#4830#4831#0" expanded="true" />
+                <element signature="e#12023#16624#0" expanded="true" />
+                <element signature="e#15444#15746#0" expanded="true" />
+                <element signature="e#15745#15746#0" expanded="true" />
+                <element signature="e#16623#16624#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -364,20 +363,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/com/example/motionsensors/MainActivity.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="121">
-          <caret line="424" column="55" lean-forward="true" selection-end-line="445" />
+        <state relative-caret-position="436">
+          <caret line="460" selection-start-line="460" selection-end-line="460" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#3834#4113#0" expanded="true" />
-            <element signature="e#4112#4113#0" expanded="true" />
-            <element signature="e#4149#4428#0" expanded="true" />
-            <element signature="e#4427#4428#0" expanded="true" />
-            <element signature="e#4465#4695#0" expanded="true" />
-            <element signature="e#4694#4695#0" expanded="true" />
-            <element signature="e#11871#15931#0" expanded="true" />
-            <element signature="e#15151#15453#0" expanded="true" />
-            <element signature="e#15452#15453#0" expanded="true" />
-            <element signature="e#15930#15931#0" expanded="true" />
+            <element signature="e#3865#4179#0" expanded="true" />
+            <element signature="e#4178#4179#0" expanded="true" />
+            <element signature="e#4215#4529#0" expanded="true" />
+            <element signature="e#4528#4529#0" expanded="true" />
+            <element signature="e#4566#4831#0" expanded="true" />
+            <element signature="e#4830#4831#0" expanded="true" />
+            <element signature="e#12023#16624#0" expanded="true" />
+            <element signature="e#15444#15746#0" expanded="true" />
+            <element signature="e#15745#15746#0" expanded="true" />
+            <element signature="e#16623#16624#0" expanded="true" />
           </folding>
         </state>
       </provider>
