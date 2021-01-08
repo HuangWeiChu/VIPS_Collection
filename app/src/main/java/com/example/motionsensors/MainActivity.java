@@ -46,15 +46,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     int endTimeG;
     int startA = 0;
     int startG = 0;
-    float Xvalue = 0;
-    float Yvalue = 0;
-    float Zvalue = 0;
-    String XAstr = "";
-    String YAstr = "";
-    String ZAstr = "";
-    String XGstr = "";
-    String YGstr = "";
-    String ZGstr = "";
+    float valueX = 0;
+    float valueY = 0;
+    float valueZ = 0;
+    String strAx = "";
+    String strAy = "";
+    String strAz = "";
+    String strGx = "";
+    String strGy = "";
+    String strGz = "";
     String uploadTime = "";
     String uploadAx = "";
     String uploadAy = "";
@@ -62,15 +62,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     String uploadGx = "";
     String uploadGy = "";
     String uploadGz = "";
-    String uploadLx = "";
-    String uploadLy = "";
-    String uploadLz = "";
-    String uploadOx = "";
-    String uploadOy = "";
-    String uploadOz = "";
     int uploadA = 0;
     int uploadG = 0;
-    int uploadL = 0;
     //-------系統時間--------//
     int year;
     int month;
@@ -86,19 +79,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     3:M8-90
     4:mi-90
     */
-    int phonenum = 2;
-    int phoneNum = phonenum;
+    int phoneNum = 2;
     int slide2 = -1;
     int slide3 = 0;
     int slide4 = -1;
-    int collection = 330;
+    int collection = 90;
 
     String msecstr = "";
     //-------系統時間--------//
     //private
-    Boolean startflag=false;
-    Boolean uploadflag=false;
-    Boolean matchpoint=false;
+    Boolean startFlag=false;
+    Boolean uploadFlag=false;
+    Boolean matchPoint=false;
     public static Handler handler = new Handler();
     int speed=100;
 
@@ -106,19 +98,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float timestamp;
     private  float[] angle = {0,0,0};
 
-    Queue<String> uploadTime_queue = new LinkedList<String>();
-    Queue<String> uploadAx_queue = new LinkedList<String>();
-    Queue<String> uploadAy_queue = new LinkedList<String>();
-    Queue<String> uploadAz_queue = new LinkedList<String>();
-    Queue<String> uploadGx_queue = new LinkedList<String>();
-    Queue<String> uploadGy_queue = new LinkedList<String>();
-    Queue<String> uploadGz_queue = new LinkedList<String>();
-    Queue<String> uploadLx_queue = new LinkedList<String>();
-    Queue<String> uploadLy_queue = new LinkedList<String>();
-    Queue<String> uploadLz_queue = new LinkedList<String>();
-    Queue<String> uploadOx_queue = new LinkedList<String>();
-    Queue<String> uploadOy_queue = new LinkedList<String>();
-    Queue<String> uploadOz_queue = new LinkedList<String>();
+    Queue<String> uploadTime_queue = new LinkedList<>();
+    Queue<String> uploadAx_queue = new LinkedList<>();
+    Queue<String> uploadAy_queue = new LinkedList<>();
+    Queue<String> uploadAz_queue = new LinkedList<>();
+    Queue<String> uploadGx_queue = new LinkedList<>();
+    Queue<String> uploadGy_queue = new LinkedList<>();
+    Queue<String> uploadGz_queue = new LinkedList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         queue = findViewById(R.id.queue);
         con= findViewById(R.id.conter);
         phoneText= findViewById(R.id.phoneNum);
-        phoneText.setText("Phone: " + phonenum);
+        phoneText.setText("Phone: " + phoneNum);
         Button start = findViewById(R.id.start);
         Button pause = findViewById(R.id.pause);
         Button stop = findViewById(R.id.stop);
@@ -147,8 +133,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onClick(View view) {
                 status.setText("Start");
-                startflag = true;
-                uploadflag = true;
+                startFlag = true;
+                uploadFlag = true;
             }
         });
 
@@ -157,8 +143,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             public void onClick(View view) {
                 status.setText("Close");
                 response.setText("waiting...");
-                startflag = false;
-                uploadflag = false;
+                startFlag = false;
+                uploadFlag = false;
             }
         });
 
@@ -166,8 +152,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onClick(View view) {
                 status.setText("Pause");
-                startflag = false;
-                uploadflag = true;
+                startFlag = false;
+                uploadFlag = true;
             }
         });
 
@@ -202,13 +188,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
 
-        if (event.sensor.equals(mAccelerometers) && matchpoint) {
+        if (event.sensor.equals(mAccelerometers) && matchPoint) {
             int TimeNowA = Calendar.getInstance().get(Calendar.MILLISECOND);
 
             if (countA == 0) {
-                XAstr = "";
-                YAstr = "";
-                ZAstr = "";
+                strAx = "";
+                strAy = "";
+                strAz = "";
                 startTimeA = Calendar.getInstance().get(Calendar.MILLISECOND);
                 //Log.d("[Test]", "\t--startTimeA: " + startTimeA);
 
@@ -217,11 +203,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                     Calendar startTime = Calendar.getInstance();
 
-                    if  (phonenum == 2) {
+                    if  (phoneNum == 2) {
                         startTime.add(Calendar.SECOND, slide2);
-                    } else if  (phonenum == 3) {
+                    } else if  (phoneNum == 3) {
                         startTime.add(Calendar.SECOND, slide3);
-                    } else if  (phonenum == 4) {
+                    } else if  (phoneNum == 4) {
                         startTime.add(Calendar.SECOND, slide4);
                     }
 
@@ -236,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     String upload = uploadYear + "-" + uploadMonth + "-" + uploadDay + " " + uploadHour + ":" + uploadMinute + ":" + uploadSecond;// + "." + uploadmsec;
                     Log.d("[Test]", "[uploadTime]: " + upload);
 
-                    if(startflag) {
+                    if(startFlag) {
                         uploadTime_queue.offer(upload);
                     }
                 }
@@ -252,22 +238,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     motion[i] = event.values[i] - gravity[i];
                 }
 
-                Xvalue = (float) ((Math.round(motion[0] * 1000))) / 1000;
-                Yvalue = (float) ((Math.round(motion[1] * 1000))) / 1000;
-                Zvalue = (float) ((Math.round(motion[2] * 1000))) / 1000;
-                XAstr += Xvalue + ",";
-                YAstr += Yvalue + ",";
-                ZAstr += Zvalue + ",";
+                valueX = (float) ((Math.round(motion[0] * 1000))) / 1000;
+                valueY = (float) ((Math.round(motion[1] * 1000))) / 1000;
+                valueZ = (float) ((Math.round(motion[2] * 1000))) / 1000;
+                strAx += valueX + ",";
+                strAy += valueY + ",";
+                strAz += valueZ + ",";
 
                 if (countA == collection) {
                     countA = 0;
                     startA = 0;
                     uploadA = 1;
 
-                    if (startflag) {
-                        uploadAx_queue.offer(XAstr);
-                        uploadAy_queue.offer(YAstr);
-                        uploadAz_queue.offer(ZAstr);
+                    if (startFlag) {
+                        uploadAx_queue.offer(strAx);
+                        uploadAy_queue.offer(strAy);
+                        uploadAz_queue.offer(strAz);
                     }
 
                     endTimeA = Calendar.getInstance().get(Calendar.MILLISECOND);
@@ -276,12 +262,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         TimeA += 1000;
                     //Log.d("[Test]", "\t\t--endTimeA: " + endTimeA);
                     //Log.d("[Test]", "\t\t--TimeA: " + TimeA);
-                    Log.d("[Test]","Acc - \nX:"+XAstr+"\n"+"Y:"+YAstr+"\n"+"Z:"+ZAstr+"\n");
+                    Log.d("[Test]","Acc - \nX:"+strAx+"\n"+"Y:"+strAy+"\n"+"Z:"+strAz+"\n");
                 }
             }
         }
 
-        if (event.sensor.equals(mGyroscope) && matchpoint) {
+        if (event.sensor.equals(mGyroscope) && matchPoint) {
             /*
             Log.d("[Test]", "<timestamp++>: " + timestamp);
             if (timestamp != 0) {
@@ -302,9 +288,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             int TimeNowG = Calendar.getInstance().get(Calendar.MILLISECOND);
 
             if (countG == 0) {
-                XGstr = "";
-                YGstr = "";
-                ZGstr = "";
+                strGx = "";
+                strGy = "";
+                strGz = "";
                 startTimeG = Calendar.getInstance().get(Calendar.MILLISECOND);
                 //Log.d("[Test]", "\t--startTimeG: " + startTimeG);
 
@@ -317,18 +303,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 //Log.d("[Test]", "[TimeNowG]: " + Calendar.getInstance().get(Calendar.MILLISECOND));
                 //Log.d("[Test]", "\t--countG: " + countG);
 
-                XGstr += event.values[0] + ",";
-                YGstr += event.values[1] + ",";
-                ZGstr += event.values[2] + ",";
+                strGx += event.values[0] + ",";
+                strGy += event.values[1] + ",";
+                strGz += event.values[2] + ",";
 
                 if (countG == collection) {
                     countG = 0;
                     startG = 0;
                     uploadG = 1;
-                    if (startflag) {
-                        uploadGx_queue.offer(XGstr);
-                        uploadGy_queue.offer(YGstr);
-                        uploadGz_queue.offer(ZGstr);
+                    if (startFlag) {
+                        uploadGx_queue.offer(strGx);
+                        uploadGy_queue.offer(strGy);
+                        uploadGz_queue.offer(strGz);
                     }
 
                     endTimeG = Calendar.getInstance().get(Calendar.MILLISECOND);
@@ -337,19 +323,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         TimeG += 1000;
                     //Log.d("[Test]", "\t\t--endTimeG: " + endTimeG);
                     //Log.d("[Test]", "\t\t--TimeG: " + TimeG);
-                    Log.d("[Test]","Gyr - \nX:"+XGstr+"\n"+"Y:"+YGstr+"\n"+"Z:"+ZGstr+"\n");
+                    Log.d("[Test]","Gyr - \nX:"+strGx+"\n"+"Y:"+strGy+"\n"+"Z:"+strGz+"\n");
                 }
             }
         }
 
         //acc.setText("TotalValue:" + String.valueOf(second) + ":" + String.valueOf(total) + "\n");
-        //gyr.setText("X:"+ XAstr +"\n"+"Y:"+ YAstr +"\n"+"Z:"+ ZAstr +"\n");
+        //gyr.setText("X:"+ strAx +"\n"+"Y:"+ strAy +"\n"+"Z:"+ strAz +"\n");
 
-        //accText.setText("Ax:" + XAstr + "\n" + "Ay:" + YAstr + "\n" + "Az:" + ZAstr + "\n");
-        //gyrText.setText("Gx:" + XGstr + "\n" + "Gy:" + YGstr + "\n" + "Gz:" + ZGstr + "\n");
+        //accText.setText("Ax:" + strAx + "\n" + "Ay:" + strAy + "\n" + "Az:" + strAz + "\n");
+        //gyrText.setText("Gx:" + strGx + "\n" + "Gy:" + strGy + "\n" + "Gz:" + strGz + "\n");
 
-        accText.setText("Ax:" + XAstr + "\n" + "Ay:" + YAstr + "\n" + "Az:" + ZAstr + "\n");
-        gyrText.setText("Gx:" + XGstr + "\n" + "Gy:" + YGstr + "\n" + "Gz:" + ZGstr + "\n");
+        accText.setText("Ax:" + strAx + "\n" + "Ay:" + strAy + "\n" + "Az:" + strAz + "\n");
+        gyrText.setText("Gx:" + strGx + "\n" + "Gy:" + strGy + "\n" + "Gz:" + strGz + "\n");
     }
 
     @Override
@@ -363,11 +349,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public void run() {
             Calendar cal = Calendar.getInstance();
 
-            if (phonenum == 2) {
+            if (phoneNum == 2) {
                 cal.add(Calendar.SECOND, slide2);
-            } else if  (phonenum == 3) {
+            } else if  (phoneNum == 3) {
                 cal.add(Calendar.SECOND, slide3);
-            } else if  (phonenum == 4) {
+            } else if  (phoneNum == 4) {
                 cal.add(Calendar.SECOND, slide4);
             }
 
@@ -387,12 +373,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             queue.setText("Queue size: " + uploadTime_queue.size());
 
-            matchpoint = true;
+            matchPoint = true;
 
             if (uploadA == 1  && uploadG == 1) {
                 uploadA = 0;
                 uploadG = 0;
-                if (uploadflag) {
+                if (uploadFlag) {
 
                     Log.d("[Test]", "<SEND!!!!!>");
 
@@ -407,14 +393,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     uploadGx = uploadGx_queue.poll();
                     uploadGy = uploadGy_queue.poll();
                     uploadGz = uploadGz_queue.poll();
-
-                    uploadLx = uploadLx_queue.poll();
-                    uploadLy = uploadLy_queue.poll();
-                    uploadLz = uploadLz_queue.poll();
-
-                    uploadOx = uploadOx_queue.poll();
-                    uploadOy = uploadOy_queue.poll();
-                    uploadOz = uploadOz_queue.poll();
 
                     if (uploadTime != null && uploadAx != null && uploadGx != null) {
                         String url = "http://140.134.26.138/VIPS/accupdate" + phoneNum + ".php?" +
