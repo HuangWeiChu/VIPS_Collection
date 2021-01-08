@@ -3,12 +3,10 @@ package com.example.motionsensors;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class TestActivity extends AppCompatActivity {
-    private WebView mWebView;
     private WebView webView;
 
     @Override
