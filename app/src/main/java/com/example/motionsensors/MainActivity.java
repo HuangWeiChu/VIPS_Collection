@@ -1,5 +1,6 @@
 package com.example.motionsensors;
 
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -28,6 +29,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
+    static String myResponse = "";
     private Thread thread;
     private SensorManager  sensorManager;
     private Sensor mAccelerometers;
@@ -395,12 +397,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     uploadGz = uploadGz_queue.poll();
 
                     if (uploadTime != null && uploadAx != null && uploadGx != null) {
-                        String url = "http://140.134.26.138/VIPS/accupdate" + phoneNum + ".php?" +
-                                "xacc=" + uploadAx + "&yacc=" + uploadAy + "&zacc="+ uploadAz +
-                                "&xgyr=" + uploadGx + "&ygyr="+ uploadGy + "&zgyr="+ uploadGz +
-                                "&xlcc=" + uploadLx + "&ylcc=" + uploadLy + "&zlcc="+ uploadLz +
-                                "&xocc=" + uploadOx + "&yocc=" + uploadOy + "&zocc="+ uploadOz +
-                                "&pnum=" + phoneNum + "&date=" + uploadTime;
+                        String url = "http://140.134.26.138/VIPS/updateAcc" + phoneNum + ".php?" +
+                                "accx=" + uploadAx + "&accy=" + uploadAy + "&accz="+ uploadAz +
+                                "&gyrx=" + uploadGx + "&gyry="+ uploadGy + "&gyrz="+ uploadGz +
+                                "&phone=" + phoneNum + "&date=" + uploadTime;
 
                         Log.d("[Test-upload]", "<Time> " + uploadTime);
                         Log.d("[Test-upload]", "<URL> " + url);
@@ -419,8 +419,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                             @Override
                             public void onResponse(Call call, Response response) throws IOException {
-                                final String myResponse = response.body().string();
-                                Log.d("[Test-upload]", "<Response> " + myResponse);
+                                myResponse = response.body().string();
                                 if (response.isSuccessful()) {
                                     MainActivity.this.runOnUiThread(new Runnable() {
                                         @Override
@@ -429,9 +428,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                         }
                                     });
                                     Log.d("[Test-upload]", "<Success>");
+                                    Log.d("[Test-upload]", "<Response> " + myResponse);
                                 } else{
                                     Log.d("[Test-upload]", "<NotSuccess>");
                                     Log.e("[ERROR]!!!!!","NotSuccess");
+                                    Intent intent = new Intent();
+                                    intent.setClass(MainActivity.this, TestActivity.class);
+                                    startActivity(intent);
                                 }
                             }
                         });

@@ -18,9 +18,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".TestActivity"></activity>
+
         <meta-data
             android:name="com.google.android.actions"
-            android:value="AIzaSyAmMv7CMAnGq_fxWHao2-QUcDJ6rdGCJ-M"/>
+            android:value="AIzaSyAmMv7CMAnGq_fxWHao2-QUcDJ6rdGCJ-M" />
 
         <activity android:name=".MainActivity">
             <intent-filter>
@@ -29,7 +31,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
     </application>
 
 </manifest>
