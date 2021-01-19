@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     TextView acc, gyr;
     TextView accText, gyrText;
-    TextView response, status, queue, time, phone;
+    TextView response, status, queue, upload, time, phone;
 
     // 計算參數
     public float[] gravity = new float[3]; // 重力在x、y、z軸上的分量
@@ -140,6 +140,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         response = findViewById(R.id.respone);
         status = findViewById(R.id.staus);
         queue = findViewById(R.id.queue);
+        upload = findViewById(R.id.upload);
         time = findViewById(R.id.conter);
 
         phone = findViewById(R.id.phoneNum);
@@ -425,6 +426,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                         @Override
                                         public void run() {
                                             MainActivity.this.response.setText("uploading...");
+                                            upload.setText(myResponse);
                                         }
                                     });
                                     Log.d("[Upload]", "<Success> " + myResponse);
