@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -204,12 +203,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.equals(mAccelerometer) && matchPoint) {
-            //Log.d("[Time_Acc]", "\tEveryTimeA: " + Calendar.getInstance().get(Calendar.MILLISECOND));
+            //Log.d("[Time_Acc]", "\tEveryTimeA: " + (System.currentTimeMillis() + offset) % 1000);
             if (countA == 0) {
                 strAx = "";
                 strAy = "";
                 strAz = "";
-                startTimeA = Calendar.getInstance().get(Calendar.MILLISECOND);
+                startTimeA = (int) (System.currentTimeMillis() + offset);
                 //Log.d("[Time_Acc]", "\tstartTimeA: " + startTimeA);
 
                 // 取得毫秒時間
@@ -235,7 +234,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             if (startA == 1) {
                 countA++;
-                //Log.d("[Time_Acc]", "[TimeNowA]: " + Calendar.getInstance().get(Calendar.MILLISECOND));
+                //Log.d("[Time_Acc]", "[TimeNowA]: " + (System.currentTimeMillis() + offset) % 1000);
                 //Log.d("[Count_Acc]", "\tcountA: " + countA);
 
                 // 移除重力
@@ -262,10 +261,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         uploadAz_queue.offer(strAz);
                     }
 
-                    endTimeA = Calendar.getInstance().get(Calendar.MILLISECOND);
+                    endTimeA = (int) (System.currentTimeMillis() + offset);
                     TimeA = endTimeA - startTimeA;
-                    if (TimeA < 0)
-                        TimeA += 1000;
                     //Log.d("[Time_Acc]", "\t\tendTimeA: " + endTimeA);
                     Log.d("[Time_Acc]", "\t\tTimeA: " + TimeA);
                     //Log.d("[Value_Acc]", "Acc - \nX: " + strAx + "\n" + "Y: " + strAy + "\n" + "Z: " + strAz + "\n");
@@ -274,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
         if (event.sensor.equals(mGyroscope) && matchPoint) {
-            //Log.d("[Time_Gyr]", "\tEveryTimeG: " + Calendar.getInstance().get(Calendar.MILLISECOND));
+            //Log.d("[Time_Gyr]", "\tEveryTimeG: " + (System.currentTimeMillis() + offset) % 1000);
 
             /*
             Log.d("[Test]", "<timestamp++>: " + timestamp);
@@ -297,7 +294,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 strGx = "";
                 strGy = "";
                 strGz = "";
-                startTimeG = Calendar.getInstance().get(Calendar.MILLISECOND);
+                startTimeG = (int) (System.currentTimeMillis() + offset);
                 //Log.d("[Time_Gyr]", "\tstartTimeG: " + startTimeG);
 
                 // 取得毫秒時間
@@ -308,7 +305,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             if (startG == 1) {
                 countG++;
-                //Log.d("[Time_Gyr]", "[TimeNowG]: " + Calendar.getInstance().get(Calendar.MILLISECOND));
+                //Log.d("[Time_Gyr]", "[TimeNowG]: " + (System.currentTimeMillis() + offset) % 1000);
                 //Log.d("[Count_Gyr]", "\tcountG: " + countG);
 
                 strGx += event.values[0] + ",";
@@ -325,10 +322,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         uploadGz_queue.offer(strGz);
                     }
 
-                    endTimeG = Calendar.getInstance().get(Calendar.MILLISECOND);
+                    endTimeG = (int) (System.currentTimeMillis() + offset);
                     TimeG = endTimeG - startTimeG;
-                    if (TimeG < 0)
-                        TimeG += 1000;
                     //Log.d("[Time_Gyr]", "\t\tendTimeG: " + endTimeG);
                     Log.d("[Time_Gyr]", "\t\tTimeG: " + TimeG);
                     //Log.d("[Value_Gyr]", "Gyr - \nX: " + strGx + "\n" + "Y: " + strGy + "\n" + "Z: " + strGz + "\n");
