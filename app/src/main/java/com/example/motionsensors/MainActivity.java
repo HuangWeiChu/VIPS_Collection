@@ -15,6 +15,9 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -57,6 +60,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     int endTimeA;
     int endTimeG;
 
+    // 其他時間參數
+    DateFormat dfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    long offset = TestActivity.offset;
+
     // 權限參數
     int startA = 0;
     int startG = 0;
@@ -89,14 +96,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     //-------限制參數--------//
     /*
-    2:sony-330
-    3:M8-90
-    4:mi-90(9s/4s)
+    2: sony-330 (2s/2s)
+    3: M8-90 (9s/9s)
+    4: mi-90 (9s/4s)
     */
-    int phoneNum = 2;
-    int slide2 = -1;
-    int slide3 = 0;
-    int slide4 = -1;
+    int phoneNum = TestActivity.phoneNum;
 
     int collection = 90;
     int timeLimit = 50;
@@ -208,30 +212,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 startTimeA = Calendar.getInstance().get(Calendar.MILLISECOND);
                 //Log.d("[Time_Acc]", "\tstartTimeA: " + startTimeA);
 
-
-                if (Calendar.getInstance().get(Calendar.MILLISECOND) <= timeLimit && Calendar.getInstance().get(Calendar.MILLISECOND) > 0) {
+                // 取得毫秒時間
+                long msec = (System.currentTimeMillis() + offset) % 1000;
+                if (msec <= timeLimit && msec > 0) {
                     startA = 1;
-
-                    Calendar startTime = Calendar.getInstance();
+                    // 取得時間
+                    long startTime = System.currentTimeMillis();
 
                     // 校正時間點對齊
-                    if (phoneNum == 2) {
-                        startTime.add(Calendar.SECOND, slide2);
-                    } else if (phoneNum == 3) {
-                        startTime.add(Calendar.SECOND, slide3);
-                    } else if (phoneNum == 4) {
-                        startTime.add(Calendar.SECOND, slide4);
-                    }
+                    startTime += offset;
 
                     // 取得時間數據
-                    int uploadYear = startTime.get(Calendar.YEAR);
-                    int uploadMonth = startTime.get(Calendar.MONTH) + 1;
-                    int uploadDay = startTime.get(Calendar.DAY_OF_MONTH);
-                    int uploadHour = startTime.get(Calendar.HOUR_OF_DAY);
-                    int uploadMinute = startTime.get(Calendar.MINUTE);
-                    int uploadSecond = startTime.get(Calendar.SECOND);
+                    String uploadTime = dfm.format(new Timestamp(startTime));
 
-                    String uploadTime = uploadYear + "-" + uploadMonth + "-" + uploadDay + " " + uploadHour + ":" + uploadMinute + ":" + uploadSecond;
                     Log.d("[Time_upload]", "[uploadTime]: " + uploadTime);
 
                     if (startFlag) {
@@ -307,7 +300,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 startTimeG = Calendar.getInstance().get(Calendar.MILLISECOND);
                 //Log.d("[Time_Gyr]", "\tstartTimeG: " + startTimeG);
 
-                if (Calendar.getInstance().get(Calendar.MILLISECOND) <= timeLimit && Calendar.getInstance().get(Calendar.MILLISECOND) > 0)
+                // 取得毫秒時間
+                long msec = (System.currentTimeMillis() + offset) % 1000;
+                if (msec <= timeLimit && msec > 0)
                     startG = 1;
             }
 
@@ -356,27 +351,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private Runnable updateTimer = new Runnable() {
         public void run() {
-            Calendar cal = Calendar.getInstance();
+            // 取得時間
+            long getTime = System.currentTimeMillis();
 
             // 校正時間點對齊
-            if (phoneNum == 2) {
-                cal.add(Calendar.SECOND, slide2);
-            } else if (phoneNum == 3) {
-                cal.add(Calendar.SECOND, slide3);
-            } else if (phoneNum == 4) {
-                cal.add(Calendar.SECOND, slide4);
-            }
+            getTime += offset;
 
             // 取得時間數據
-            int year = cal.get(Calendar.YEAR);
-            int month = cal.get(Calendar.MONTH) + 1;
-            int day = cal.get(Calendar.DAY_OF_MONTH);
-            int hour = cal.get(Calendar.HOUR_OF_DAY);
-            int minute = cal.get(Calendar.MINUTE);
-            int second = cal.get(Calendar.SECOND);
-            int msec = cal.get(Calendar.MILLISECOND);
+            String showTime = dfm.format(new Timestamp(getTime));
 
-            String showTime = year + "年" + month + "月" + day + "日 " + hour + ":" + minute + ":" + second + "." + msec;
             time.setText(showTime);
             //Log.d("[Time_show]", "<showTime>" + showTime);
 
