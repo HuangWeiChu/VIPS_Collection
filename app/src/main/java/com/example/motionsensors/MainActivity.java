@@ -97,11 +97,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     /*
     2: sony-330 (2s/2s)
     3: M8-90 (9s/9s)
-    4: mi-90 (9s/4s)
+    4: mi-90-180 (9s/4s)
     */
     int phoneNum = TestActivity.phoneNum;
 
-    int collection = 90;
+    int collectionAcc = 90;
+    int collectionGyr = 90;
+
     int timeLimit = 50;
 
     //-------啟動權限--------//
@@ -189,6 +191,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onResume() {
         super.onResume();
+
+        // 調整sensor取樣頻率
+        if (phoneNum == 2) {
+            collectionAcc = 330;
+            collectionGyr = 330;
+        } else if (phoneNum == 3) {
+            collectionAcc = 90;
+            collectionGyr = 90;
+        } else if (phoneNum == 4) {
+            collectionAcc = 90;
+            collectionGyr = 180;
+        }
+
         sensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_FASTEST);
     }
@@ -250,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 strAy += valueY + ",";
                 strAz += valueZ + ",";
 
-                if (countA == collection) {
+                if (countA == collectionAcc) {
                     countA = 0;
                     startA = 0;
                     uploadA = 1;
@@ -312,7 +327,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 strGy += event.values[1] + ",";
                 strGz += event.values[2] + ",";
 
-                if (countG == collection) {
+                if (countG == collectionGyr) {
                     countG = 0;
                     startG = 0;
                     uploadG = 1;
