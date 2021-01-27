@@ -68,9 +68,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     int startG = 0;
 
     // 數值參數
-    float valueX = 0;
-    float valueY = 0;
-    float valueZ = 0;
+    float valueAx = 0;
+    float valueAy = 0;
+    float valueAz = 0;
+    float valueGx = 0;
+    float valueGy = 0;
+    float valueGz = 0;
 
     // 數據參數
     String strAx = "";
@@ -259,12 +262,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     motion[i] = event.values[i] - gravity[i];
                 }
 
-                valueX = (float) Math.round(motion[0] * 1000) / 1000;
-                valueY = (float) Math.round(motion[1] * 1000) / 1000;
-                valueZ = (float) Math.round(motion[2] * 1000) / 1000;
-                strAx += valueX + ",";
-                strAy += valueY + ",";
-                strAz += valueZ + ",";
+                valueAx = (float) Math.round(motion[0] * 100000) / 100000;
+                valueAy = (float) Math.round(motion[1] * 100000) / 100000;
+                valueAz = (float) Math.round(motion[2] * 100000) / 100000;
+                strAx += valueAx + ",";
+                strAy += valueAy + ",";
+                strAz += valueAz + ",";
 
                 if (countA == collectionAcc) {
                     countA = 0;
@@ -289,23 +292,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (event.sensor.equals(mGyroscope) && matchPoint) {
             //Log.d("[Time_Gyr]", "\tEveryTimeG: " + (System.currentTimeMillis() + offset) % 1000);
 
-            /*
-            Log.d("[Test]", "<timestamp++>: " + timestamp);
-            if (timestamp != 0) {
-                //  event.timesamp表示當前的時間，單位是納秒（1百萬分之一毫秒）
-                final float dT = (event.timestamp - timestamp) * NS2S;
-                Log.d("[Test]", "<dT>: " + dT);
-                angle[0] = event.values[0] * dT;
-                angle[1] = event.values[1] * dT;
-                angle[2] = event.values[2] * dT;
-
-                Log.d("[Test]", "<value>: " + event.values[0] + "\t" + event.values[1] + "\t" + event.values[2]);
-                Log.d("[Test]", "<angle>: " + angle[0] + "\t" + angle[1] + "\t" + angle[2]);
-            }
-            timestamp = event.timestamp;
-            Log.d("[Test]", "<timestamp>: " + timestamp);
-            */
-
             if (countG == 0) {
                 strGx = "";
                 strGy = "";
@@ -324,9 +310,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 //Log.d("[Time_Gyr]", "[TimeNowG]: " + (System.currentTimeMillis() + offset) % 1000);
                 //Log.d("[Count_Gyr]", "\tcountG: " + countG);
 
-                strGx += event.values[0] + ",";
-                strGy += event.values[1] + ",";
-                strGz += event.values[2] + ",";
+                if (timestamp != 0) {
+                    // event.timesamp表示當前的時間，單位是納秒（1百萬分之一毫秒）
+                    final float dT = (event.timestamp - timestamp) * NS2S;
+                    angle[0] = event.values[0] * dT;
+                    angle[1] = event.values[1] * dT;
+                    angle[2] = event.values[2] * dT;
+                }
+                timestamp = event.timestamp;
+
+                valueGx = (float) Math.round(angle[0] * 1000000) / 1000000;
+                valueGy = (float) Math.round(angle[1] * 1000000) / 1000000;
+                valueGz = (float) Math.round(angle[2] * 1000000) / 1000000;
+                strGx += valueGx + ",";
+                strGy += valueGy + ",";
+                strGz += valueGz + ",";
 
                 if (countG == collectionGyr) {
                     countG = 0;
