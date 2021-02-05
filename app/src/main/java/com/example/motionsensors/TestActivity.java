@@ -95,8 +95,8 @@ public class TestActivity extends AppCompatActivity {
                 }
             };
 
-            getNTP.start();
             try {
+                getNTP.start();
                 getNTP.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
