@@ -58,14 +58,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     int startTimeG;
     int endTimeA;
     int endTimeG;
+    String preTimeA = "";
+    String preTimeG = "";
+    String timerA = "";
+    String timerG = "";
 
     // 其他時間參數
     DateFormat dfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     long offset = TestActivity.offset;
-
-    // 權限參數
-    int startA = 0;
-    int startG = 0;
 
     // 數值參數
     float valueAx = 0;
@@ -106,8 +106,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     int collectionAcc = 90;
     int collectionGyr = 90;
-
-    int timeLimit = 50;
 
     //-------啟動權限--------//
     Boolean startFlag = false;
@@ -222,75 +220,81 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.equals(mAccelerometer) && matchPoint) {
-            //Log.d("[Time_Acc]", "\tEveryTimeA: " + (System.currentTimeMillis() + offset) % 1000);
+            // 取得時間數據
+            long timeA = System.currentTimeMillis() + offset;
+            timerA = dfm.format(new Timestamp(timeA));
+            //Log.d("[Time_Acc]", "EveryTimeA: " + timerA + "." + (timeA % 1000));
+
+            if (!preTimeA.equals(timerA)) {
+                if (startFlag) {
+                    uploadTime_queue.offer(preTimeA);
+                    uploadAx_queue.offer(strAx);
+                    uploadAy_queue.offer(strAy);
+                    uploadAz_queue.offer(strAz);
+                }
+                Log.d("[Time_upload]", "[uploadTime]: " + preTimeA);
+
+                endTimeA = (int) (System.currentTimeMillis() + offset);
+                TimeA = endTimeA - startTimeA;
+                //Log.d("[Time_Acc]", "\t\tendTimeA: " + endTimeA);
+                //Log.d("[Time_Acc]", "\t\tTimeA: " + TimeA);
+                Log.d("[Count_Acc]", "\tcountA All: " + countA);
+                //Log.d("[Value_Acc]", "Acc - \nX: " + strAx + "\n" + "Y: " + strAy + "\n" + "Z: " + strAz + "\n");
+
+                countA = 0;
+                uploadA = 1;
+                preTimeA = timerA;
+            }
+
             if (countA == 0) {
                 strAx = "";
                 strAy = "";
                 strAz = "";
                 startTimeA = (int) (System.currentTimeMillis() + offset);
                 //Log.d("[Time_Acc]", "\tstartTimeA: " + startTimeA);
-
-                // 取得毫秒時間
-                long msec = (System.currentTimeMillis() + offset) % 1000;
-                if (msec <= timeLimit && msec > 0) {
-                    startA = 1;
-                    // 取得時間
-                    long startTime = System.currentTimeMillis();
-
-                    // 校正時間點對齊
-                    startTime += offset;
-
-                    // 取得時間數據
-                    String uploadTime = dfm.format(new Timestamp(startTime));
-
-                    Log.d("[Time_upload]", "[uploadTime]: " + uploadTime);
-
-                    if (startFlag) {
-                        uploadTime_queue.offer(uploadTime);
-                    }
-                }
             }
 
-            if (startA == 1) {
-                countA++;
-                //Log.d("[Time_Acc]", "[TimeNowA]: " + (System.currentTimeMillis() + offset) % 1000);
-                //Log.d("[Count_Acc]", "\tcountA: " + countA);
+            countA++;
+            //Log.d("[Count_Acc]", "\tcountA: " + countA);
 
-                // 移除重力
-                for (int i = 0; i < 3; i++) {
-                    gravity[i] = (float) (0.1 * event.values[i] + 0.9 * gravity[i]);
-                    motion[i] = event.values[i] - gravity[i];
-                }
-
-                valueAx = (float) Math.round(motion[0] * 100000) / 100000;
-                valueAy = (float) Math.round(motion[1] * 100000) / 100000;
-                valueAz = (float) Math.round(motion[2] * 100000) / 100000;
-                strAx += valueAx + ",";
-                strAy += valueAy + ",";
-                strAz += valueAz + ",";
-
-                if (countA == collectionAcc) {
-                    countA = 0;
-                    startA = 0;
-                    uploadA = 1;
-
-                    if (startFlag) {
-                        uploadAx_queue.offer(strAx);
-                        uploadAy_queue.offer(strAy);
-                        uploadAz_queue.offer(strAz);
-                    }
-
-                    endTimeA = (int) (System.currentTimeMillis() + offset);
-                    TimeA = endTimeA - startTimeA;
-                    //Log.d("[Time_Acc]", "\t\tendTimeA: " + endTimeA);
-                    Log.d("[Time_Acc]", "\t\tTimeA: " + TimeA);
-                    //Log.d("[Value_Acc]", "Acc - \nX: " + strAx + "\n" + "Y: " + strAy + "\n" + "Z: " + strAz + "\n");
-                }
+            // 移除重力
+            for (int i = 0; i < 3; i++) {
+                gravity[i] = (float) (0.1 * event.values[i] + 0.9 * gravity[i]);
+                motion[i] = event.values[i] - gravity[i];
             }
+
+            valueAx = (float) Math.round(motion[0] * 100000) / 100000;
+            valueAy = (float) Math.round(motion[1] * 100000) / 100000;
+            valueAz = (float) Math.round(motion[2] * 100000) / 100000;
+            strAx += valueAx + ",";
+            strAy += valueAy + ",";
+            strAz += valueAz + ",";
         }
 
         if (event.sensor.equals(mGyroscope) && matchPoint) {
-            //Log.d("[Time_Gyr]", "\tEveryTimeG: " + (System.currentTimeMillis() + offset) % 1000);
+            // 取得時間數據
+            long timeG = System.currentTimeMillis() + offset;
+            timerG = dfm.format(new Timestamp(timeG));
+            //Log.d("[Time_Gyr]", "EveryTimeG: " + timerG + "." + (timeG % 1000));
+
+            if (!preTimeG.equals(timerG)) {
+                if (startFlag) {
+                    uploadGx_queue.offer(strGx);
+                    uploadGy_queue.offer(strGy);
+                    uploadGz_queue.offer(strGz);
+                }
+
+                endTimeG = (int) (System.currentTimeMillis() + offset);
+                TimeG = endTimeG - startTimeG;
+                //Log.d("[Time_Gyr]", "\t\tendTimeG: " + endTimeG);
+                //Log.d("[Time_Gyr]", "\t\tTimeG: " + TimeG);
+                Log.d("[Count_Gyr]", "\tcountG All: " + countG);
+                //Log.d("[Value_Gyr]", "Gyr - \nX: " + strGx + "\n" + "Y: " + strGy + "\n" + "Z: " + strGz + "\n");
+
+                countG = 0;
+                uploadG = 1;
+                preTimeG = timerG;
+            }
 
             if (countG == 0) {
                 strGx = "";
@@ -298,51 +302,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 strGz = "";
                 startTimeG = (int) (System.currentTimeMillis() + offset);
                 //Log.d("[Time_Gyr]", "\tstartTimeG: " + startTimeG);
-
-                // 取得毫秒時間
-                long msec = (System.currentTimeMillis() + offset) % 1000;
-                if (msec <= timeLimit && msec > 0)
-                    startG = 1;
             }
 
-            if (startG == 1) {
-                countG++;
-                //Log.d("[Time_Gyr]", "[TimeNowG]: " + (System.currentTimeMillis() + offset) % 1000);
-                //Log.d("[Count_Gyr]", "\tcountG: " + countG);
+            countG++;
+            //Log.d("[Count_Gyr]", "\tcountG: " + countG);
 
-                if (timestamp != 0) {
-                    // event.timesamp表示當前的時間，單位是納秒（1百萬分之一毫秒）
-                    final float dT = (event.timestamp - timestamp) * NS2S;
-                    angle[0] = event.values[0] * dT;
-                    angle[1] = event.values[1] * dT;
-                    angle[2] = event.values[2] * dT;
-                }
-                timestamp = event.timestamp;
-
-                valueGx = (float) Math.round(angle[0] * 1000000) / 1000000;
-                valueGy = (float) Math.round(angle[1] * 1000000) / 1000000;
-                valueGz = (float) Math.round(angle[2] * 1000000) / 1000000;
-                strGx += valueGx + ",";
-                strGy += valueGy + ",";
-                strGz += valueGz + ",";
-
-                if (countG == collectionGyr) {
-                    countG = 0;
-                    startG = 0;
-                    uploadG = 1;
-                    if (startFlag) {
-                        uploadGx_queue.offer(strGx);
-                        uploadGy_queue.offer(strGy);
-                        uploadGz_queue.offer(strGz);
-                    }
-
-                    endTimeG = (int) (System.currentTimeMillis() + offset);
-                    TimeG = endTimeG - startTimeG;
-                    //Log.d("[Time_Gyr]", "\t\tendTimeG: " + endTimeG);
-                    Log.d("[Time_Gyr]", "\t\tTimeG: " + TimeG);
-                    //Log.d("[Value_Gyr]", "Gyr - \nX: " + strGx + "\n" + "Y: " + strGy + "\n" + "Z: " + strGz + "\n");
-                }
+            if (timestamp != 0) {
+                // event.timesamp表示當前的時間，單位是納秒（1百萬分之一毫秒）
+                final float dT = (event.timestamp - timestamp) * NS2S;
+                angle[0] = event.values[0] * dT;
+                angle[1] = event.values[1] * dT;
+                angle[2] = event.values[2] * dT;
             }
+            timestamp = event.timestamp;
+
+            valueGx = (float) Math.round(angle[0] * 1000000) / 1000000;
+            valueGy = (float) Math.round(angle[1] * 1000000) / 1000000;
+            valueGz = (float) Math.round(angle[2] * 1000000) / 1000000;
+            strGx += valueGx + ",";
+            strGy += valueGy + ",";
+            strGz += valueGz + ",";
         }
 
         acc.setText("Acc count: " + countA);
@@ -444,7 +423,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             startActivity(intent);
                         }
                     }
-
                 }
             }
             handler.postDelayed(this, speed);
