@@ -14,7 +14,14 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -64,7 +71,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     String timerG = "";
 
     // 其他時間參數
-    DateFormat dfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    //DateFormat dfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    DateFormat dfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     long offset = TestActivity.offset;
 
     // 數值參數
@@ -84,6 +92,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     String strGz = "";
 
     // 上傳參數
+    Integer uploadIndex = 0;
+    String uploadText = "";
     String uploadTime = "";
     String uploadAx = "";
     String uploadAy = "";
@@ -91,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     String uploadGx = "";
     String uploadGy = "";
     String uploadGz = "";
+
 
     // 上傳權限參數
     int uploadA = 0;
@@ -111,6 +122,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     Boolean startFlag = false;
     Boolean uploadFlag = false;
     Boolean errorFlag = false;
+    Boolean saveFlag = true;
+    Boolean sendFlag = false;
     Boolean matchPoint = false;
 
     public static Handler handler = new Handler();
@@ -123,6 +136,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     Queue<String> uploadGx_queue = new LinkedList<>();
     Queue<String> uploadGy_queue = new LinkedList<>();
     Queue<String> uploadGz_queue = new LinkedList<>();
+    Queue<String> upload_queue = new LinkedList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -158,6 +172,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 response.setText("preparing...");
                 startFlag = true;
                 uploadFlag = true;
+                sendFlag = false;
                 errorFlag = false;
             }
         });
@@ -169,6 +184,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 response.setText("waiting...");
                 startFlag = false;
                 uploadFlag = false;
+                sendFlag = true;
                 errorFlag = false;
             }
         });
@@ -179,6 +195,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 status.setText("Pause");
                 startFlag = false;
                 uploadFlag = true;
+                sendFlag = false;
                 errorFlag = false;
             }
         });
@@ -187,6 +204,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         handler.removeCallbacks(updateTimer);
         //設定Delay的時間
         handler.postDelayed(updateTimer, speed);
+
+        //執行上傳
+        new Thread(uploadData).start();
     }
 
 
@@ -220,6 +240,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.equals(mAccelerometer) && matchPoint) {
+
             // 取得時間數據
             long timeA = System.currentTimeMillis() + offset;
             timerA = dfm.format(new Timestamp(timeA));
@@ -238,7 +259,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 TimeA = endTimeA - startTimeA;
                 //Log.d("[Time_Acc]", "\t\tendTimeA: " + endTimeA);
                 //Log.d("[Time_Acc]", "\t\tTimeA: " + TimeA);
-                Log.d("[Count_Acc]", "\tcountA All: " + countA);
+                //Log.d("[Count_Acc]", "\tcountA All: " + countA);
                 //Log.d("[Value_Acc]", "Acc - \nX: " + strAx + "\n" + "Y: " + strAy + "\n" + "Z: " + strAz + "\n");
 
                 countA = 0;
@@ -266,9 +287,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             valueAx = (float) Math.round(motion[0] * 100000) / 100000;
             valueAy = (float) Math.round(motion[1] * 100000) / 100000;
             valueAz = (float) Math.round(motion[2] * 100000) / 100000;
-            strAx += valueAx + ",";
-            strAy += valueAy + ",";
-            strAz += valueAz + ",";
+            strAx = String.valueOf(valueAx);
+            strAy = String.valueOf(valueAy);
+            strAz = String.valueOf(valueAz);
         }
 
         if (event.sensor.equals(mGyroscope) && matchPoint) {
@@ -288,7 +309,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 TimeG = endTimeG - startTimeG;
                 //Log.d("[Time_Gyr]", "\t\tendTimeG: " + endTimeG);
                 //Log.d("[Time_Gyr]", "\t\tTimeG: " + TimeG);
-                Log.d("[Count_Gyr]", "\tcountG All: " + countG);
+                //Log.d("[Count_Gyr]", "\tcountG All: " + countG);
                 //Log.d("[Value_Gyr]", "Gyr - \nX: " + strGx + "\n" + "Y: " + strGy + "\n" + "Z: " + strGz + "\n");
 
                 countG = 0;
@@ -319,9 +340,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             valueGx = (float) Math.round(angle[0] * 1000000) / 1000000;
             valueGy = (float) Math.round(angle[1] * 1000000) / 1000000;
             valueGz = (float) Math.round(angle[2] * 1000000) / 1000000;
-            strGx += valueGx + ",";
-            strGy += valueGy + ",";
-            strGz += valueGz + ",";
+            strGx = String.valueOf(valueGx);
+            strGy = String.valueOf(valueGy);
+            strGz = String.valueOf(valueGz);
         }
 
         acc.setText("Acc count: " + countA);
@@ -355,77 +376,145 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             matchPoint = true;
 
-            if (uploadA == 1 && uploadG == 1) {
-                uploadA = 0;
-                uploadG = 0;
-                if (uploadFlag) {
-                    //Log.d("[Upload]", "<SEND!!!!!>");
+            handler.postDelayed(this, speed);
+        }
+    };
+    private Runnable uploadData = new Runnable() {
+        @Override
+        public void run() {
+            while (true) {
+                if (uploadA == 1 && uploadG == 1) {
+                    uploadA = 0;
+                    uploadG = 0;
+                    if (uploadFlag) {
+                        //Log.d("[Upload]", "<SEND!!!!!>");
 
-                    OkHttpClient client = new OkHttpClient();
+                        OkHttpClient client = new OkHttpClient();
 
-                    // 取出佇列數據
-                    uploadTime = uploadTime_queue.poll();
-                    uploadAx = uploadAx_queue.poll();
-                    uploadAy = uploadAy_queue.poll();
-                    uploadAz = uploadAz_queue.poll();
-                    uploadGx = uploadGx_queue.poll();
-                    uploadGy = uploadGy_queue.poll();
-                    uploadGz = uploadGz_queue.poll();
+                        // 取出佇列數據
+                        uploadTime = uploadTime_queue.poll();
+                        uploadAx = uploadAx_queue.poll();
+                        uploadAy = uploadAy_queue.poll();
+                        uploadAz = uploadAz_queue.poll();
+                        uploadGx = uploadGx_queue.poll();
+                        uploadGy = uploadGy_queue.poll();
+                        uploadGz = uploadGz_queue.poll();
 
-                    if (uploadTime != null && uploadAx != null && uploadGx != null) {
-                        String url = "http://140.134.26.138/VIPS/updateAcc" + phoneNum + ".php?" +
-                                "accx=" + uploadAx + "&accy=" + uploadAy + "&accz=" + uploadAz +
-                                "&gyrx=" + uploadGx + "&gyry=" + uploadGy + "&gyrz=" + uploadGz +
-                                "&phone=" + phoneNum + "&date=" + uploadTime;
+                        if (uploadTime != null && uploadAx != null && uploadGx != null) {
+                            if (!saveFlag) {
+                                String url = "http://140.134.26.138/VIPS/Msec/updateAcc" + phoneNum + ".php?" +
+                                        "accx=" + uploadAx + "&accy=" + uploadAy + "&accz=" + uploadAz +
+                                        "&gyrx=" + uploadGx + "&gyry=" + uploadGy + "&gyrz=" + uploadGz +
+                                        "&phone=" + phoneNum + "&date=" + uploadTime;
 
-                        //Log.d("[Upload]", "<Time> " + uploadTime);
-                        //Log.d("[Upload]", "<URL> " + url);
+                                //Log.d("[Upload]", "<Time> " + uploadTime);
+                                //Log.d("[Upload]", "<URL> " + url);
 
-                        Request request = new Request.Builder()
-                                .url(url)
-                                .build();
+                                Request request = new Request.Builder()
+                                        .url(url)
+                                        .build();
 
-                        client.newCall(request).enqueue(new Callback() {
-                            @Override
-                            public void onFailure(Call call, IOException e) {
-                                errorFlag = true;
-                                myResponse = "<html><i>" + e.getMessage() + "</i></html>";
-                                Log.d("[Upload]", "<Error> " + e.getMessage());
-                                Log.e("[ERROR]!!!!!", "Failure", e);
-                                e.printStackTrace();
-                            }
+                                client.newCall(request).enqueue(new Callback() {
+                                    @Override
+                                    public void onFailure(Call call, IOException e) {
+                                        errorFlag = true;
+                                        myResponse = "<html><i>" + e.getMessage() + "</i></html>";
+                                        Log.d("[Upload]", "<Error> " + e.getMessage());
+                                        Log.e("[ERROR]!!!!!", "Failure", e);
+                                        e.printStackTrace();
+                                    }
 
-                            @Override
-                            public void onResponse(Call call, Response response) throws IOException {
-                                myResponse = response.body().string();
-                                if (response.isSuccessful()) {
-                                    MainActivity.this.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            MainActivity.this.response.setText("uploading...");
-                                            upload.setText(myResponse);
+                                    @Override
+                                    public void onResponse(Call call, Response response) throws IOException {
+                                        myResponse = response.body().string();
+                                        if (response.isSuccessful()) {
+                                            MainActivity.this.runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    MainActivity.this.response.setText("uploading...");
+                                                    upload.setText(myResponse);
+                                                }
+                                            });
+                                            Log.d("[Upload]", "<Success> " + myResponse);
+                                        } else {
+                                            errorFlag = true;
+                                            Log.d("[Upload]", "<NotSuccess>");
+                                            Log.e("[ERROR]!!!!!", "NotSuccess");
                                         }
-                                    });
-                                    Log.d("[Upload]", "<Success> " + myResponse);
-                                } else {
-                                    errorFlag = true;
-                                    Log.d("[Upload]", "<NotSuccess>");
-                                    Log.e("[ERROR]!!!!!", "NotSuccess");
+                                    }
+                                });
+
+                                // 當傳送錯誤時轉跳頁面
+                                if (errorFlag) {
+                                    errorFlag = false;
+                                    Intent intent = new Intent();
+                                    intent.setClass(MainActivity.this, TestActivity.class);
+                                    startActivity(intent);
+                                }
+                            } else {
+                                uploadIndex += 1;
+                                String saveText = uploadIndex + "," + uploadTime + "," +
+                                        uploadAx + "," + uploadAy + "," + uploadAz + "," +
+                                        uploadGx + "," + uploadGy + "," + uploadGz + "," + phoneNum + "\n";
+                                upload_queue.offer(saveText);
+                                uploadText = upload_queue.poll();
+
+                                if (uploadText != null) {
+                                    try {
+                                        String file_name = "//sdcard//testfile.txt";
+
+                                        File file = new File(file_name);
+                                        if (!file.exists()) {
+                                            file.createNewFile();
+                                        }
+                                        // 覆蓋檔案
+                                        //OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");// 覆蓋檔案
+                                        // 追加檔案
+                                        OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"); // 追加檔案
+                                        BufferedWriter writer = new BufferedWriter(os);
+                                        writer.write(uploadText);
+                                        writer.close();
+                                        Log.d("[File Out]", "<Success> " + uploadText);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
-                        });
-
-                        // 當傳送錯誤時轉跳頁面
-                        if (errorFlag) {
-                            errorFlag = false;
-                            Intent intent = new Intent();
-                            intent.setClass(MainActivity.this, TestActivity.class);
-                            startActivity(intent);
                         }
                     }
                 }
+
+                if (!saveFlag && sendFlag) {
+                    try {
+                        String file_name = "//sdcard//testfile.txt";
+                        String file_content = "";
+                        String line;
+
+                        File file = new File(file_name);
+                        if (file.isFile() && file.exists()) {
+                            // 讀取檔案
+                            FileInputStream fis = new FileInputStream(file);
+                            InputStreamReader sr = new InputStreamReader(fis, "UTF-8");
+                            BufferedReader br = new BufferedReader(sr);
+                            // 印出檔案
+                            while ((line = br.readLine()) != null) {
+                                file_content += line + "\n";
+                            }
+                            sr.close();
+                            Log.d("[File In]", file_content);
+                        } else {
+                            Log.d("[File]",  "Not exist!");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    String url = "http://140.134.26.138/VIPS/Msec/uploadFile.php?" +
+                            "fileToUpload=" + "testfile.txt";
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .build();
+                }
             }
-            handler.postDelayed(this, speed);
         }
     };
 }

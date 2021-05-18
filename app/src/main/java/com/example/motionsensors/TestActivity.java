@@ -3,7 +3,12 @@ package com.example.motionsensors;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
@@ -13,6 +18,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -20,10 +32,9 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 
-public class TestActivity extends AppCompatActivity {
+public class TestActivity extends AppCompatActivity implements SensorEventListener {
     String TAG = "Sntp";
 
     private WebView webView;
@@ -31,6 +42,7 @@ public class TestActivity extends AppCompatActivity {
     EditText phoneText;
     TextView offsetText;
     TextView desText;
+    TextView sensorText;
     Button launch;
 
     long diff;
@@ -38,6 +50,13 @@ public class TestActivity extends AppCompatActivity {
     static int phoneNum = 0;
 
     DateFormat dfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+
+    String strX = "";
+    String strY = "";
+    String strZ = "";
+    private SensorManager sensorManager;
+    private Sensor msensor;
+    public float[] value = new float[3];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +73,11 @@ public class TestActivity extends AppCompatActivity {
             phoneText = findViewById(R.id.phoneSet);
             offsetText = findViewById(R.id.offset);
             desText = findViewById(R.id.description);
+            sensorText = findViewById(R.id.sensor);
             launch = findViewById(R.id.launch);
+
+            sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+            msensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
             desText.setText("Description: \n" +
                     "2: sony\n" +
@@ -104,6 +127,111 @@ public class TestActivity extends AppCompatActivity {
             offsetText.setText("NTP offset = " + offset + "\n\nDiff = " + diff);
             Log.d(TAG, "[Diff]: " + offset);
             Log.d(TAG, "[Diff]: " + diff);
+
+            fileTest(1);
+            fileTest(3);
+            fileTest(2);
+            fileTest(3);
+
+            Log.d(TAG, "[END]");
+        }
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        sensorManager.registerListener(this, msensor, SensorManager.SENSOR_DELAY_FASTEST);
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.equals(msensor)) {
+            // 移除重力
+            for (int i = 0; i < 3; i++) {
+                value[i] = event.values[i];
+            }
+
+            strX = String.valueOf(Math.round(value[0] * 100.0) / 100.0);
+            strY = String.valueOf(Math.round(value[1] * 100.0) / 100.0);
+            strZ = String.valueOf(Math.round(value[2] * 100.0) / 100.0);
+
+            sensorText.setText("x: " + strX + "\n" + "y: " + strY + "\n" + "z: " + strZ + "\n");
+
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
+
+    }
+
+    public void fileTest(int set) {
+        switch (set) {
+            case 1:
+                boolean mExternalStorageAvailable = false;
+                boolean mExternalStorageWriteable = false;
+                String state = Environment.getExternalStorageState();
+
+                if (Environment.MEDIA_MOUNTED.equals(state)) {
+                    // 我們可以對外部儲存空間進行讀取跟寫入的動作
+                    mExternalStorageAvailable = mExternalStorageWriteable = true;
+                } else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+                    // 我們只能讀取外部儲存空間
+                    mExternalStorageAvailable = true;
+                    mExternalStorageWriteable = false;
+                } else {
+                    // 外部儲存空間錯誤，錯誤的情況很多，但一般我們只關心讀取跟寫入的狀態
+                    mExternalStorageAvailable = mExternalStorageWriteable = false;
+                }
+                Log.d(TAG, "[File Read]" + mExternalStorageAvailable);
+                Log.d(TAG, "[File Write]" + mExternalStorageWriteable);
+                break;
+            case 2:
+                try {
+                    String file_name = "//sdcard//testfile.txt";
+                    String file_content = "";
+
+                    File file = new File(file_name);
+                    if (!file.exists()) {
+                        file.createNewFile();
+                    }
+                    // 覆蓋檔案
+                    OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");// 覆蓋檔案
+                    // 追加檔案
+                    //OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"); // 追加檔案
+                    BufferedWriter writer = new BufferedWriter(os);
+                    writer.write(file_content);
+                    writer.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
+            case 3:
+                try {
+                    String file_name = "//sdcard//testfile.txt";
+                    String file_content = "";
+                    String line;
+
+                    File file = new File(file_name);
+                    if (file.isFile() && file.exists()) {
+                        // 讀取檔案
+                        FileInputStream fis = new FileInputStream(file);
+                        InputStreamReader sr = new InputStreamReader(fis, "UTF-8");
+                        BufferedReader br = new BufferedReader(sr);
+                        // 印出檔案
+                        while ((line = br.readLine()) != null) {
+                            file_content += line + "\n";
+                        }
+                        sr.close();
+                        Log.d(TAG, "[File In]: \n" + file_content);
+                    } else {
+                        Log.d(TAG, "[File]: Not exist!");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
         }
     }
 }
