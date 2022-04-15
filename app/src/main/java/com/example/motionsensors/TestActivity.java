@@ -31,6 +31,7 @@ import java.net.InetAddress;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -43,7 +44,9 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
     TextView offsetText;
     TextView desText;
     TextView sensorText;
+    TextView sensorfixText;
     Button launch;
+    Button calibration;
 
     long diff;
     static long offset;
@@ -54,9 +57,47 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
     String strX = "";
     String strY = "";
     String strZ = "";
+    String strAx = "";
+    String strAy = "";
+    String strAz = "";
+    String strGx = "";
+    String strGy = "";
+    String strGz = "";
+
     private SensorManager sensorManager;
     private Sensor msensor;
+    private Sensor mAccelerometer;
+    private Sensor mGyroscope;
+
     public float[] value = new float[3];
+
+    // 計算參數
+    public float[] gravity = new float[3]; // 重力在x、y、z軸上的分量
+    public float[] motion = new float[3]; // 過濾掉重力後，加速度在x、y、z上的分量
+
+    private static final float NS2S = 1.0f / 1000000000.0f;
+    private float timestamp;
+    private float[] angle = {0, 0, 0};
+
+
+    static public float[] calibrationA = new float[3];
+    static public float[] calibrationG = new float[3];
+    ArrayList calibrationAxList = new ArrayList();
+    ArrayList calibrationAyList = new ArrayList();
+    ArrayList calibrationAzList = new ArrayList();
+    ArrayList calibrationGxList = new ArrayList();
+    ArrayList calibrationGyList = new ArrayList();
+    ArrayList calibrationGzList = new ArrayList();
+
+    Boolean isCalibration = false;
+
+    double average(ArrayList<Float> lists) {
+        double sum = 0.0;
+        for (Float list : lists) {
+            sum += list;
+        }
+        return (float) (sum / lists.size());
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,15 +115,23 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
             offsetText = findViewById(R.id.offset);
             desText = findViewById(R.id.description);
             sensorText = findViewById(R.id.sensor);
+            sensorfixText = findViewById(R.id.sensorfix);
             launch = findViewById(R.id.launch);
+            calibration = findViewById(R.id.calibration);
 
             sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
             msensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+            mAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            //mAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
+            //mAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+            //mAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER_UNCALIBRATED);
+            mGyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
             desText.setText("Description: \n" +
                     "2: sony\n" +
                     "3: M8\n" +
-                    "4: mi");
+                    "4: mi\n" +
+                    "5: pink");
 
             launch.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -91,6 +140,14 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
                     Intent intent = new Intent();
                     intent.setClass(TestActivity.this, MainActivity.class);
                     startActivity(intent);
+                }
+            });
+
+            calibration.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    isCalibration = !isCalibration;
+                    Log.d(TAG, "[isCalibration]: " + isCalibration);
                 }
             });
 
@@ -135,19 +192,20 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
 
             Log.d(TAG, "[END]");
         }
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         sensorManager.registerListener(this, msensor, SensorManager.SENSOR_DELAY_FASTEST);
+        sensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);
+        sensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.equals(msensor)) {
-            // 移除重力
+
             for (int i = 0; i < 3; i++) {
                 value[i] = event.values[i];
             }
@@ -156,9 +214,150 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
             strY = String.valueOf(Math.round(value[1] * 100.0) / 100.0);
             strZ = String.valueOf(Math.round(value[2] * 100.0) / 100.0);
 
-            sensorText.setText("x: " + strX + "\n" + "y: " + strY + "\n" + "z: " + strZ + "\n");
+            //sensorText.setText("x: " + strX + "\n" + "y: " + strY + "\n" + "z: " + strZ + "\n");
 
         }
+        if (event.sensor.equals(mAccelerometer)) {
+
+            for (int i = 0; i < 3; i++) {
+                value[i] = event.values[i];
+            }
+
+            // 移除重力
+            for (int i = 0; i < 3; i++) {
+                gravity[i] = (float) (0.1 * event.values[i] + 0.9 * gravity[i]);
+                motion[i] = event.values[i] - gravity[i];
+            }
+
+            strAx = String.valueOf(Math.round(value[0] * 100.0) / 100.0);
+            strAy = String.valueOf(Math.round(value[1] * 100.0) / 100.0);
+            strAz = String.valueOf(Math.round(value[2] * 100.0) / 100.0);
+
+            /*
+            strAx = String.valueOf(event.values[0]);
+            strAy = String.valueOf(event.values[1]);
+            strAz = String.valueOf(event.values[2]);
+            */
+
+            if (isCalibration) {
+                calibrationAxList.add(event.values[0]);
+                calibrationAyList.add(event.values[1]);
+                calibrationAzList.add(event.values[2]);
+
+                if (calibrationAxList.size() == 500) {
+                    if (isCalibration)
+                        isCalibration = false;
+
+                    Log.d("[values]", String.valueOf(event.values[0]));
+                    Log.d("[values]", String.valueOf(event.values[1]));
+                    Log.d("[values]", String.valueOf(event.values[2]));
+
+                    /*
+                    if (Math.abs(event.values[0]) > 9) {
+                        calibrationA[0] = 0;
+                        calibrationA[1] = (float) average(calibrationAyList);
+                        calibrationA[2] = (float) average(calibrationAzList);
+                    } else if (Math.abs(event.values[1]) > 9) {
+                        calibrationA[0] = (float) average(calibrationAxList);
+                        calibrationA[1] = 0;
+                        calibrationA[2] = (float) average(calibrationAzList);
+                    } else if (Math.abs(event.values[2]) > 9) {
+                        calibrationA[0] = (float) average(calibrationAxList);
+                        calibrationA[1] = (float) average(calibrationAyList);
+                        calibrationA[2] = 0;
+                    }
+                    */
+
+                    calibrationA[0] = (float) (0 - average(calibrationAxList));
+                    calibrationA[1] = (float) (0 - average(calibrationAyList));
+                    calibrationA[2] = (float) (9.8 - average(calibrationAzList));
+                    calibrationAxList.clear();
+                    calibrationAyList.clear();
+                    calibrationAzList.clear();
+                    Log.d("[calibrationAxList]", String.valueOf(calibrationA[0]));
+                    Log.d("[calibrationAyList]", String.valueOf(calibrationA[1]));
+                    Log.d("[calibrationAzList]", String.valueOf(calibrationA[2]));
+                }
+            }
+        }
+        if (event.sensor.equals(mGyroscope)) {
+
+            for (int i = 0; i < 3; i++) {
+                value[i] = event.values[i];
+            }
+
+            if (timestamp != 0) {
+                // event.timesamp表示當前的時間，單位是納秒（1百萬分之一毫秒）
+                final float dT = (event.timestamp - timestamp) * NS2S;
+                angle[0] = event.values[0] * dT;
+                angle[1] = event.values[1] * dT;
+                angle[2] = event.values[2] * dT;
+            }
+            timestamp = event.timestamp;
+
+            String test1, test2, test3, test4;
+
+            strGx = String.valueOf((float) Math.round(angle[0] * 1000000) / 1000000);
+            strGy = String.valueOf((float) Math.round(angle[1] * 1000000) / 1000000);
+            strGz = String.valueOf((float) Math.round(angle[2] * 1000000) / 1000000);
+            test1 = strGz;
+
+            strGx = String.valueOf((float) Math.round(angle[0] * 100) / 100);
+            strGy = String.valueOf((float) Math.round(angle[1] * 100) / 100);
+            strGz = String.valueOf((float) Math.round(angle[2] * 100) / 100);
+            test2 = strGz;
+
+            // 正確數據
+            strGx = String.valueOf(Math.round(value[0] * 100.0) / 100.0);
+            strGy = String.valueOf(Math.round(value[1] * 100.0) / 100.0);
+            strGz = String.valueOf(Math.round(value[2] * 100.0) / 100.0);
+            test3 = strGz;
+
+            /*
+            strGx = String.valueOf(event.values[0]);
+            strGy = String.valueOf(event.values[1]);
+            strGz = String.valueOf(event.values[2]);
+            test4 = strGz;
+            */
+
+            /*
+            Log.d("[-----]", " ");
+            Log.d("[test1]", test1);
+            Log.d("[test2]", test2);
+            Log.d("[test3]", test3);
+            Log.d("[test4]", test4);
+            */
+
+            if (isCalibration) {
+                calibrationGxList.add(event.values[0]);
+                calibrationGyList.add(event.values[1]);
+                calibrationGzList.add(event.values[2]);
+
+                if (calibrationGxList.size() == 500) {
+                    if (isCalibration)
+                        isCalibration = false;
+
+                    Log.d("[values]", String.valueOf(event.values[0]));
+                    Log.d("[values]", String.valueOf(event.values[1]));
+                    Log.d("[values]", String.valueOf(event.values[2]));
+
+                    calibrationG[0] = (float) (0 - average(calibrationGxList));
+                    calibrationG[1] = (float) (0 - average(calibrationGyList));
+                    calibrationG[2] = (float) (0 - average(calibrationGzList));
+                    calibrationGxList.clear();
+                    calibrationGyList.clear();
+                    calibrationGzList.clear();
+                    Log.d("[calibrationGxList]", String.valueOf(calibrationG[0]));
+                    Log.d("[calibrationGyList]", String.valueOf(calibrationG[1]));
+                    Log.d("[calibrationGzList]", String.valueOf(calibrationG[2]));
+                }
+            }
+        }
+        sensorText.setText("Ax:" + strAx + "\n" + "Ay:" + strAy + "\n" + "Az:" + strAz + "\n"
+                + "Gx:" + strGx + "\n" + "Gy:" + strGy + "\n" + "Gz:" + strGz);
+
+        sensorfixText.setText("Ax:" + calibrationA[0] + "\n" + "Ay:" + calibrationA[1] + "\n" + "Az:" + calibrationA[2] + "\n"
+                + "Gx:" + calibrationG[0] + "\n" + "Gy:" + calibrationG[1] + "\n" + "Gz:" + calibrationG[2]);
     }
 
     @Override

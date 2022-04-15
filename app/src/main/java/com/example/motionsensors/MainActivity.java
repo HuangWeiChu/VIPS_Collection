@@ -112,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     2: sony-330 (2s/2s)
     3: M8-90 (9s/9s)
     4: mi-90-180 (9s/4s)
+    5: pink-
     */
     int phoneNum = TestActivity.phoneNum;
 
@@ -276,7 +277,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
 
             countA++;
-            //Log.d("[Count_Acc]", "\tcountA: " + countA);
+            Log.d("[Count_Acc]", "\tcountA: " + countA);
 
             // 移除重力
             for (int i = 0; i < 3; i++) {
@@ -284,12 +285,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 motion[i] = event.values[i] - gravity[i];
             }
 
+            // 舊方法
             valueAx = (float) Math.round(motion[0] * 100000) / 100000;
             valueAy = (float) Math.round(motion[1] * 100000) / 100000;
             valueAz = (float) Math.round(motion[2] * 100000) / 100000;
             strAx = String.valueOf(valueAx);
             strAy = String.valueOf(valueAy);
             strAz = String.valueOf(valueAz);
+
+            // 新方法
+            strAx = String.valueOf(event.values[0] + TestActivity.calibrationA[0]);
+            strAy = String.valueOf(event.values[1] + TestActivity.calibrationA[1]);
+            strAz = String.valueOf(event.values[2] + TestActivity.calibrationA[2]);
         }
 
         if (event.sensor.equals(mGyroscope) && matchPoint) {
@@ -337,12 +344,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
             timestamp = event.timestamp;
 
+            // 舊方法
             valueGx = (float) Math.round(angle[0] * 1000000) / 1000000;
             valueGy = (float) Math.round(angle[1] * 1000000) / 1000000;
             valueGz = (float) Math.round(angle[2] * 1000000) / 1000000;
             strGx = String.valueOf(valueGx);
             strGy = String.valueOf(valueGy);
             strGz = String.valueOf(valueGz);
+
+            // 新方法
+            strGx = String.valueOf(event.values[0] + TestActivity.calibrationG[0]);
+            strGy = String.valueOf(event.values[1] + TestActivity.calibrationG[1]);
+            strGz = String.valueOf(event.values[2] + TestActivity.calibrationG[2]);
         }
 
         acc.setText("Acc count: " + countA);
