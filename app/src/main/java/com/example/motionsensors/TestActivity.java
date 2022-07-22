@@ -65,7 +65,7 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
     String strGz = "";
 
     private SensorManager sensorManager;
-    private Sensor msensor;
+    private Sensor mSensor;
     private Sensor mAccelerometer;
     private Sensor mGyroscope;
 
@@ -82,12 +82,16 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
 
     static public float[] calibrationA = new float[3];
     static public float[] calibrationG = new float[3];
+    static public float[] calibrationR = new float[3];
     ArrayList calibrationAxList = new ArrayList();
     ArrayList calibrationAyList = new ArrayList();
     ArrayList calibrationAzList = new ArrayList();
     ArrayList calibrationGxList = new ArrayList();
     ArrayList calibrationGyList = new ArrayList();
     ArrayList calibrationGzList = new ArrayList();
+    ArrayList calibrationRxList = new ArrayList();
+    ArrayList calibrationRyList = new ArrayList();
+    ArrayList calibrationRzList = new ArrayList();
 
     Boolean isCalibration = false;
 
@@ -120,7 +124,8 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
             calibration = findViewById(R.id.calibration);
 
             sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-            msensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+            mSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+            mSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR);
             mAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             //mAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
             //mAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
@@ -197,14 +202,14 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onResume() {
         super.onResume();
-        sensorManager.registerListener(this, msensor, SensorManager.SENSOR_DELAY_FASTEST);
+        sensorManager.registerListener(this, mSensor, SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.equals(msensor)) {
+        if (event.sensor.equals(mSensor)) {
 
             for (int i = 0; i < 3; i++) {
                 value[i] = event.values[i];
@@ -216,6 +221,13 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
 
             //sensorText.setText("x: " + strX + "\n" + "y: " + strY + "\n" + "z: " + strZ + "\n");
 
+            if (isCalibration) {
+                if (calibrationRxList.size() < 500) {
+                    calibrationRxList.add(event.values[0]);
+                    calibrationRyList.add(event.values[1]);
+                    calibrationRzList.add(event.values[2]);
+                }
+            }
         }
         if (event.sensor.equals(mAccelerometer)) {
 
@@ -240,43 +252,10 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
             */
 
             if (isCalibration) {
-                calibrationAxList.add(event.values[0]);
-                calibrationAyList.add(event.values[1]);
-                calibrationAzList.add(event.values[2]);
-
-                if (calibrationAxList.size() == 500) {
-                    if (isCalibration)
-                        isCalibration = false;
-
-                    Log.d("[values]", String.valueOf(event.values[0]));
-                    Log.d("[values]", String.valueOf(event.values[1]));
-                    Log.d("[values]", String.valueOf(event.values[2]));
-
-                    /*
-                    if (Math.abs(event.values[0]) > 9) {
-                        calibrationA[0] = 0;
-                        calibrationA[1] = (float) average(calibrationAyList);
-                        calibrationA[2] = (float) average(calibrationAzList);
-                    } else if (Math.abs(event.values[1]) > 9) {
-                        calibrationA[0] = (float) average(calibrationAxList);
-                        calibrationA[1] = 0;
-                        calibrationA[2] = (float) average(calibrationAzList);
-                    } else if (Math.abs(event.values[2]) > 9) {
-                        calibrationA[0] = (float) average(calibrationAxList);
-                        calibrationA[1] = (float) average(calibrationAyList);
-                        calibrationA[2] = 0;
-                    }
-                    */
-
-                    calibrationA[0] = (float) (0 - average(calibrationAxList));
-                    calibrationA[1] = (float) (0 - average(calibrationAyList));
-                    calibrationA[2] = (float) (9.8 - average(calibrationAzList));
-                    calibrationAxList.clear();
-                    calibrationAyList.clear();
-                    calibrationAzList.clear();
-                    Log.d("[calibrationAxList]", String.valueOf(calibrationA[0]));
-                    Log.d("[calibrationAyList]", String.valueOf(calibrationA[1]));
-                    Log.d("[calibrationAzList]", String.valueOf(calibrationA[2]));
+                if (calibrationAxList.size() < 500) {
+                    calibrationAxList.add(event.values[0]);
+                    calibrationAyList.add(event.values[1]);
+                    calibrationAzList.add(event.values[2]);
                 }
             }
         }
@@ -329,30 +308,67 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
             */
 
             if (isCalibration) {
-                calibrationGxList.add(event.values[0]);
-                calibrationGyList.add(event.values[1]);
-                calibrationGzList.add(event.values[2]);
-
-                if (calibrationGxList.size() == 500) {
-                    if (isCalibration)
-                        isCalibration = false;
-
-                    Log.d("[values]", String.valueOf(event.values[0]));
-                    Log.d("[values]", String.valueOf(event.values[1]));
-                    Log.d("[values]", String.valueOf(event.values[2]));
-
-                    calibrationG[0] = (float) (0 - average(calibrationGxList));
-                    calibrationG[1] = (float) (0 - average(calibrationGyList));
-                    calibrationG[2] = (float) (0 - average(calibrationGzList));
-                    calibrationGxList.clear();
-                    calibrationGyList.clear();
-                    calibrationGzList.clear();
-                    Log.d("[calibrationGxList]", String.valueOf(calibrationG[0]));
-                    Log.d("[calibrationGyList]", String.valueOf(calibrationG[1]));
-                    Log.d("[calibrationGzList]", String.valueOf(calibrationG[2]));
+                if (calibrationGxList.size() < 500) {
+                    calibrationGxList.add(event.values[0]);
+                    calibrationGyList.add(event.values[1]);
+                    calibrationGzList.add(event.values[2]);
                 }
             }
         }
+
+        if (calibrationAxList.size() == 500 && calibrationGxList.size() == 500 && calibrationRxList.size() == 500) {
+            /*
+            if (event.sensor.equals(mAccelerometer) {
+                if (Math.abs(event.values[0]) > 9) {
+                    calibrationA[0] = 0;
+                    calibrationA[1] = (float) average(calibrationAyList);
+                    calibrationA[2] = (float) average(calibrationAzList);
+                } else if (Math.abs(event.values[1]) > 9) {
+                    calibrationA[0] = (float) average(calibrationAxList);
+                    calibrationA[1] = 0;
+                    calibrationA[2] = (float) average(calibrationAzList);
+                } else if (Math.abs(event.values[2]) > 9) {
+                    calibrationA[0] = (float) average(calibrationAxList);
+                    calibrationA[1] = (float) average(calibrationAyList);
+                    calibrationA[2] = 0;
+                }
+            }
+            */
+
+            calibrationA[0] = (float) (0 - average(calibrationAxList));
+            calibrationA[1] = (float) (0 - average(calibrationAyList));
+            calibrationA[2] = (float) (9.8 - average(calibrationAzList));
+            calibrationAxList.clear();
+            calibrationAyList.clear();
+            calibrationAzList.clear();
+            Log.d("[calibrationAxList]", String.valueOf(calibrationA[0]));
+            Log.d("[calibrationAyList]", String.valueOf(calibrationA[1]));
+            Log.d("[calibrationAzList]", String.valueOf(calibrationA[2]));
+
+            calibrationG[0] = (float) (0 - average(calibrationGxList));
+            calibrationG[1] = (float) (0 - average(calibrationGyList));
+            calibrationG[2] = (float) (0 - average(calibrationGzList));
+            calibrationGxList.clear();
+            calibrationGyList.clear();
+            calibrationGzList.clear();
+            Log.d("[calibrationGxList]", String.valueOf(calibrationG[0]));
+            Log.d("[calibrationGyList]", String.valueOf(calibrationG[1]));
+            Log.d("[calibrationGzList]", String.valueOf(calibrationG[2]));
+
+            calibrationR[0] = (float) (0 - average(calibrationRxList));
+            calibrationR[1] = (float) (0 - average(calibrationRyList));
+            calibrationR[2] = (float) (0 - average(calibrationRzList));
+            calibrationRxList.clear();
+            calibrationRyList.clear();
+            calibrationRzList.clear();
+            Log.d("[calibrationRxList]", String.valueOf(calibrationR[0]));
+            Log.d("[calibrationRyList]", String.valueOf(calibrationR[1]));
+            Log.d("[calibrationRzList]", String.valueOf(calibrationR[2]));
+
+            if (isCalibration)
+                isCalibration = false;
+        }
+
         sensorText.setText("Ax:" + strAx + "\n" + "Ay:" + strAy + "\n" + "Az:" + strAz + "\n"
                 + "Gx:" + strGx + "\n" + "Gy:" + strGy + "\n" + "Gz:" + strGz);
 

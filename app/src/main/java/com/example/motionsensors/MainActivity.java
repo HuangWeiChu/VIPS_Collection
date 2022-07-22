@@ -36,11 +36,12 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
     private SensorManager sensorManager;
+    private Sensor mSensor;
     private Sensor mAccelerometer;
     private Sensor mGyroscope;
 
     TextView acc, gyr;
-    TextView accText, gyrText;
+    TextView accText, gyrText, rotText;
     TextView response, status, queue, upload, time, phone;
 
     // 計算參數
@@ -57,18 +58,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // 記數參數
     private int countA = 0;
     private int countG = 0;
+    private int countR = 0;
 
     // 時間參數
     int TimeA;
     int TimeG;
+    int TimeR;
     int startTimeA;
     int startTimeG;
+    int startTimeR;
     int endTimeA;
     int endTimeG;
+    int endTimeR;
     String preTimeA = "";
     String preTimeG = "";
+    String preTimeR = "";
     String timerA = "";
     String timerG = "";
+    String timerR = "";
 
     // 其他時間參數
     //DateFormat dfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -82,6 +89,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float valueGx = 0;
     float valueGy = 0;
     float valueGz = 0;
+    float valueRx = 0;
+    float valueRy = 0;
+    float valueRz = 0;
 
     // 數據參數
     String strAx = "";
@@ -90,6 +100,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     String strGx = "";
     String strGy = "";
     String strGz = "";
+    String strRx = "";
+    String strRy = "";
+    String strRz = "";
 
     // 上傳參數
     Integer uploadIndex = 0;
@@ -101,11 +114,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     String uploadGx = "";
     String uploadGy = "";
     String uploadGz = "";
+    String uploadRx = "";
+    String uploadRy = "";
+    String uploadRz = "";
 
 
     // 上傳權限參數
     int uploadA = 0;
     int uploadG = 0;
+    int uploadR = 0;
 
     //-------限制參數--------//
     /*
@@ -137,6 +154,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     Queue<String> uploadGx_queue = new LinkedList<>();
     Queue<String> uploadGy_queue = new LinkedList<>();
     Queue<String> uploadGz_queue = new LinkedList<>();
+    Queue<String> uploadRx_queue = new LinkedList<>();
+    Queue<String> uploadRy_queue = new LinkedList<>();
+    Queue<String> uploadRz_queue = new LinkedList<>();
     Queue<String> upload_queue = new LinkedList<>();
 
     @Override
@@ -145,6 +165,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_main);
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        mSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR);
         mAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mGyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
@@ -152,6 +173,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         gyr = findViewById(R.id.gry);
         accText = findViewById(R.id.accText);
         gyrText = findViewById(R.id.gyrText);
+        rotText = findViewById(R.id.rotText);
 
         response = findViewById(R.id.respone);
         status = findViewById(R.id.staus);
@@ -227,6 +249,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             collectionGyr = 180;
         }
 
+        sensorManager.registerListener(this, mSensor, SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);
         sensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_FASTEST);
     }
@@ -237,6 +260,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         sensorManager.unregisterListener(this);
     }
 
+    private float fixCalibration(float calibratedR, float calibrationR) {
+        if (calibratedR < -1 || calibratedR > 1) {
+            calibratedR = -calibratedR + calibrationR;
+        }
+        return calibratedR;
+    }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -358,11 +387,65 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             strGz = String.valueOf(event.values[2] + TestActivity.calibrationG[2]);
         }
 
+        if (event.sensor.equals(mSensor) && matchPoint) {
+
+            // 取得時間數據
+            long timeR = System.currentTimeMillis() + offset;
+            timerR = dfm.format(new Timestamp(timeR));
+            //Log.d("[Time_Rot]", "EveryTimeR: " + timerR + "." + (timeR % 1000));
+
+            if (!preTimeR.equals(timerR)) {
+                if (startFlag) {
+                    uploadRx_queue.offer(strRx);
+                    uploadRy_queue.offer(strRy);
+                    uploadRz_queue.offer(strRz);
+                }
+                //Log.d("[Time_upload]", "[uploadTime]: " + preTimeR);
+
+                endTimeR = (int) (System.currentTimeMillis() + offset);
+                TimeR = endTimeR - startTimeR;
+                //Log.d("[Time_Rot]", "\t\tendTimeR: " + endTimeR);
+                //Log.d("[Time_Rot]", "\t\tTimeR: " + TimeR);
+                //Log.d("[Count_Rot]", "\tcountR All: " + countR);
+                //Log.d("[Value_Rot]", "Rot - \nX: " + strRx + "\n" + "Y: " + strRy + "\n" + "Z: " + strRz + "\n");
+
+                countR = 0;
+                uploadR = 1;
+                preTimeR = timerR;
+            }
+
+            if (countR == 0) {
+                strRx = "";
+                strRy = "";
+                strRz = "";
+                startTimeR = (int) (System.currentTimeMillis() + offset);
+                //Log.d("[Time_Rot]", "\tstartTimeR: " + startTimeR);
+            }
+
+            countR++;
+            Log.d("[Count_Rot]", "\tcountR: " + countR);
+
+            // 舊方法
+            strRx = String.valueOf(event.values[0] + TestActivity.calibrationR[0]);
+            strRy = String.valueOf(event.values[1] + TestActivity.calibrationR[1]);
+            strRz = String.valueOf(event.values[2] + TestActivity.calibrationR[2]);
+
+            // 新方法
+            valueRx = event.values[0] + TestActivity.calibrationR[0];
+            valueRy = event.values[1] + TestActivity.calibrationR[1];
+            valueRz = event.values[2] + TestActivity.calibrationR[2];
+
+            strRx = String.valueOf(fixCalibration(valueRx, TestActivity.calibrationR[0]));
+            strRy = String.valueOf(fixCalibration(valueRy, TestActivity.calibrationR[1]));
+            strRz = String.valueOf(fixCalibration(valueRz, TestActivity.calibrationR[2]));
+        }
+
         acc.setText("Acc count: " + countA);
         gyr.setText("Gyr count: " + countG);
 
         accText.setText("Ax:" + strAx + "\n" + "Ay:" + strAy + "\n" + "Az:" + strAz + "\n");
         gyrText.setText("Gx:" + strGx + "\n" + "Gy:" + strGy + "\n" + "Gz:" + strGz + "\n");
+        rotText.setText("Rx:" + strRx + "\n" + "Ry:" + strRy + "\n" + "Rz:" + strRz + "\n");
     }
 
     @Override
@@ -396,9 +479,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         @Override
         public void run() {
             while (true) {
-                if (uploadA == 1 && uploadG == 1) {
+                if (uploadA == 1 && uploadG == 1 && uploadR == 1) {
                     uploadA = 0;
                     uploadG = 0;
+                    uploadR = 0;
                     if (uploadFlag) {
                         //Log.d("[Upload]", "<SEND!!!!!>");
 
@@ -412,8 +496,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         uploadGx = uploadGx_queue.poll();
                         uploadGy = uploadGy_queue.poll();
                         uploadGz = uploadGz_queue.poll();
+                        uploadRx = uploadRx_queue.poll();
+                        uploadRy = uploadRy_queue.poll();
+                        uploadRz = uploadRz_queue.poll();
 
-                        if (uploadTime != null && uploadAx != null && uploadGx != null) {
+                        if (uploadTime != null && uploadAx != null && uploadGx != null && uploadRx != null) {
                             if (!saveFlag) {
                                 String url = "http://140.134.26.138/VIPS/Msec/updateAcc" + phoneNum + ".php?" +
                                         "accx=" + uploadAx + "&accy=" + uploadAy + "&accz=" + uploadAz +
@@ -468,7 +555,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                 uploadIndex += 1;
                                 String saveText = uploadIndex + "," + uploadTime + "," +
                                         uploadAx + "," + uploadAy + "," + uploadAz + "," +
-                                        uploadGx + "," + uploadGy + "," + uploadGz + "," + phoneNum + "\n";
+                                        uploadGx + "," + uploadGy + "," + uploadGz + "," +
+                                        uploadRx + "," + uploadRy + "," + uploadRz + "," + phoneNum + "\n";
                                 upload_queue.offer(saveText);
                                 uploadText = upload_queue.poll();
 
