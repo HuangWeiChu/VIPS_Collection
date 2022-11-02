@@ -35,6 +35,10 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
+
+    boolean showCount = false;
+    boolean showTime = false;
+
     private SensorManager sensorManager;
     private Sensor mSensor;
     private Sensor mAccelerometer;
@@ -165,6 +169,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_main);
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        //mSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
         mSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR);
         mAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mGyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
@@ -274,7 +279,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             // 取得時間數據
             long timeA = System.currentTimeMillis() + offset;
             timerA = dfm.format(new Timestamp(timeA));
-            //Log.d("[Time_Acc]", "EveryTimeA: " + timerA + "." + (timeA % 1000));
+            if (showTime)
+                Log.d("[Time_Acc]", "EveryTimeA: " + timerA);// + "." + (timeA % 1000));
 
             if (!preTimeA.equals(timerA)) {
                 if (startFlag) {
@@ -289,7 +295,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 TimeA = endTimeA - startTimeA;
                 //Log.d("[Time_Acc]", "\t\tendTimeA: " + endTimeA);
                 //Log.d("[Time_Acc]", "\t\tTimeA: " + TimeA);
-                //Log.d("[Count_Acc]", "\tcountA All: " + countA);
+                if (showCount)
+                    Log.d("[Count_Acc]", "\tcountA All: " + countA);
                 //Log.d("[Value_Acc]", "Acc - \nX: " + strAx + "\n" + "Y: " + strAy + "\n" + "Z: " + strAz + "\n");
 
                 countA = 0;
@@ -332,7 +339,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             // 取得時間數據
             long timeG = System.currentTimeMillis() + offset;
             timerG = dfm.format(new Timestamp(timeG));
-            //Log.d("[Time_Gyr]", "EveryTimeG: " + timerG + "." + (timeG % 1000));
+            if (showTime)
+                Log.d("[Time_Gyr]", "EveryTimeG: " + timerG);// + "." + (timeG % 1000));
 
             if (!preTimeG.equals(timerG)) {
                 if (startFlag) {
@@ -345,7 +353,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 TimeG = endTimeG - startTimeG;
                 //Log.d("[Time_Gyr]", "\t\tendTimeG: " + endTimeG);
                 //Log.d("[Time_Gyr]", "\t\tTimeG: " + TimeG);
-                //Log.d("[Count_Gyr]", "\tcountG All: " + countG);
+                if (showCount)
+                    Log.d("[Count_Gyr]", "\tcountG All: " + countG);
                 //Log.d("[Value_Gyr]", "Gyr - \nX: " + strGx + "\n" + "Y: " + strGy + "\n" + "Z: " + strGz + "\n");
 
                 countG = 0;
@@ -392,7 +401,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             // 取得時間數據
             long timeR = System.currentTimeMillis() + offset;
             timerR = dfm.format(new Timestamp(timeR));
-            //Log.d("[Time_Rot]", "EveryTimeR: " + timerR + "." + (timeR % 1000));
+            if (showTime)
+                Log.d("[Time_Rot]", "EveryTimeR: " + timerR);// + "." + (timeR % 1000));
 
             if (!preTimeR.equals(timerR)) {
                 if (startFlag) {
@@ -406,7 +416,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 TimeR = endTimeR - startTimeR;
                 //Log.d("[Time_Rot]", "\t\tendTimeR: " + endTimeR);
                 //Log.d("[Time_Rot]", "\t\tTimeR: " + TimeR);
-                //Log.d("[Count_Rot]", "\tcountR All: " + countR);
+                if (showCount)
+                    Log.d("[Count_Rot]", "\tcountR All: " + countR);
                 //Log.d("[Value_Rot]", "Rot - \nX: " + strRx + "\n" + "Y: " + strRy + "\n" + "Z: " + strRz + "\n");
 
                 countR = 0;
@@ -423,7 +434,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
 
             countR++;
-            Log.d("[Count_Rot]", "\tcountR: " + countR);
+            //Log.d("[Count_Rot]", "\tcountR: " + countR);
 
             // 舊方法
             strRx = String.valueOf(event.values[0] + TestActivity.calibrationR[0]);
