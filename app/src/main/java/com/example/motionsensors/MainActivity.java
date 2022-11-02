@@ -112,6 +112,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     Integer uploadIndex = 0;
     String uploadText = "";
     String uploadTime = "";
+    String uploadTimeG = "";
+    String uploadTimeR = "";
     String uploadAx = "";
     String uploadAy = "";
     String uploadAz = "";
@@ -152,6 +154,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     int speed = 100;
 
     Queue<String> uploadTime_queue = new LinkedList<>();
+    Queue<String> uploadTimeG_queue = new LinkedList<>();
+    Queue<String> uploadTimeR_queue = new LinkedList<>();
     Queue<String> uploadAx_queue = new LinkedList<>();
     Queue<String> uploadAy_queue = new LinkedList<>();
     Queue<String> uploadAz_queue = new LinkedList<>();
@@ -344,6 +348,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             if (!preTimeG.equals(timerG)) {
                 if (startFlag) {
+                    uploadTimeG_queue.offer(preTimeA);
                     uploadGx_queue.offer(strGx);
                     uploadGy_queue.offer(strGy);
                     uploadGz_queue.offer(strGz);
@@ -406,6 +411,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             if (!preTimeR.equals(timerR)) {
                 if (startFlag) {
+                    uploadTimeR_queue.offer(preTimeA);
                     uploadRx_queue.offer(strRx);
                     uploadRy_queue.offer(strRy);
                     uploadRz_queue.offer(strRz);
@@ -504,14 +510,39 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         uploadAx = uploadAx_queue.poll();
                         uploadAy = uploadAy_queue.poll();
                         uploadAz = uploadAz_queue.poll();
-                        uploadGx = uploadGx_queue.poll();
-                        uploadGy = uploadGy_queue.poll();
-                        uploadGz = uploadGz_queue.poll();
-                        uploadRx = uploadRx_queue.poll();
-                        uploadRy = uploadRy_queue.poll();
-                        uploadRz = uploadRz_queue.poll();
 
-                        if (uploadTime != null && uploadAx != null && uploadGx != null && uploadRx != null) {
+                        if (uploadTime!= null) {
+                            if (uploadTimeG.equals(""))
+                                uploadTimeG = uploadTimeG_queue.poll();
+                            if (uploadTime.equals(uploadTimeG) || Double.parseDouble(uploadTime.substring(17)) > Double.parseDouble(uploadTimeG.substring(17))) {
+                                uploadGx = uploadGx_queue.poll();
+                                uploadGy = uploadGy_queue.poll();
+                                uploadGz = uploadGz_queue.poll();
+                                if (uploadTimeG_queue.size() > 0)
+                                    uploadTimeG = uploadTimeG_queue.poll();
+                            } else {
+                                uploadGx = null;
+                                uploadGy = null;
+                                uploadGz = null;
+                            }
+
+                            if (uploadTimeR.equals(""))
+                                uploadTimeR = uploadTimeR_queue.poll();
+                            if (uploadTime.equals(uploadTimeR) || Double.parseDouble(uploadTime.substring(17)) > Double.parseDouble(uploadTimeR.substring(17))) {
+                                uploadRx = uploadRx_queue.poll();
+                                uploadRy = uploadRy_queue.poll();
+                                uploadRz = uploadRz_queue.poll();
+                                if (uploadTimeR_queue.size() > 0)
+                                    uploadTimeR = uploadTimeR_queue.poll();
+                            } else {
+                                uploadRx = "";
+                                uploadRy = "";
+                                uploadRz = "";
+                            }
+                        }
+
+                        if (uploadTime != null && uploadAx != null && uploadGx != null) {
+                        //if (uploadTime != null && uploadAx != null && uploadGx != null && uploadRx != null) {
                             if (!saveFlag) {
                                 String url = "http://140.134.26.138/VIPS/Msec/updateAcc" + phoneNum + ".php?" +
                                         "accx=" + uploadAx + "&accy=" + uploadAy + "&accz=" + uploadAz +
