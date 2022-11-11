@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     TextView acc, gyr;
     TextView accText, gyrText, rotText;
-    TextView response, status, queue, upload, time, phone;
+    TextView response, status, queue, upload, error, time, phone;
 
     // 計算參數
     public float[] gravity = new float[3]; // 重力在x、y、z軸上的分量
@@ -141,12 +141,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     int collectionAcc = 90;
     int collectionGyr = 90;
+    int saveSize = 2000;
+    int savedSize = 0;
 
     //-------啟動權限--------//
     Boolean startFlag = false;
     Boolean uploadFlag = false;
     Boolean errorFlag = false;
-    Boolean saveFlag = true;
+    Boolean saveFlag = false;
     Boolean sendFlag = false;
     Boolean stopFlag = false;
     Boolean matchPoint = false;
@@ -154,19 +156,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public static Handler handler = new Handler();
     int speed = 100;
 
-    Queue<String> uploadTime_queue = new LinkedList<>();
-    Queue<String> uploadTimeG_queue = new LinkedList<>();
-    Queue<String> uploadTimeR_queue = new LinkedList<>();
-    Queue<String> uploadAx_queue = new LinkedList<>();
-    Queue<String> uploadAy_queue = new LinkedList<>();
-    Queue<String> uploadAz_queue = new LinkedList<>();
-    Queue<String> uploadGx_queue = new LinkedList<>();
-    Queue<String> uploadGy_queue = new LinkedList<>();
-    Queue<String> uploadGz_queue = new LinkedList<>();
-    Queue<String> uploadRx_queue = new LinkedList<>();
-    Queue<String> uploadRy_queue = new LinkedList<>();
-    Queue<String> uploadRz_queue = new LinkedList<>();
-    Queue<String> upload_queue = new LinkedList<>();
+    LinkedList<String> uploadTime_queue = new LinkedList<>();
+    LinkedList<String> uploadTimeG_queue = new LinkedList<>();
+    LinkedList<String> uploadTimeR_queue = new LinkedList<>();
+    LinkedList<String> uploadAx_queue = new LinkedList<>();
+    LinkedList<String> uploadAy_queue = new LinkedList<>();
+    LinkedList<String> uploadAz_queue = new LinkedList<>();
+    LinkedList<String> uploadGx_queue = new LinkedList<>();
+    LinkedList<String> uploadGy_queue = new LinkedList<>();
+    LinkedList<String> uploadGz_queue = new LinkedList<>();
+    LinkedList<String> uploadRx_queue = new LinkedList<>();
+    LinkedList<String> uploadRy_queue = new LinkedList<>();
+    LinkedList<String> uploadRz_queue = new LinkedList<>();
+    LinkedList<String> upload_queue = new LinkedList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -189,6 +191,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         status = findViewById(R.id.staus);
         queue = findViewById(R.id.queue);
         upload = findViewById(R.id.upload);
+        error = findViewById(R.id.error);
         time = findViewById(R.id.conter);
 
         phone = findViewById(R.id.phoneNum);
@@ -489,7 +492,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             time.setText(showTime);
             //Log.d("[Time_show]", "<showTime>" + showTime);
 
-            queue.setText("Queue size: " + uploadTime_queue.size());
+            String queueSize = uploadTime_queue.size() + "\n";
+            queueSize += uploadAx_queue.size() + "/" + uploadAy_queue.size() + "/" + uploadAz_queue.size() + "\n";
+            queueSize += uploadGx_queue.size() + "/" + uploadGy_queue.size() + "/" + uploadGz_queue.size() + "\n";
+            queueSize += uploadRx_queue.size() + "/" + uploadRy_queue.size() + "/" + uploadRz_queue.size() + "\n";
+            //queueSize += countA + "/" + countG + "/" + countR;
+
+            //queue.setText("Queue size: " + uploadTime_queue.size());
+            queue.setText("Queue size: " + queueSize);
+            upload.setText("Upload size: " + uploadIndex);
 
             matchPoint = true;
 
@@ -516,57 +527,76 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     if (uploadFlag) {
                         //Log.d("[Upload]", "<SEND!!!!!>");
 
-                        Log.d("[Upload]", "<Queue> " + uploadTime_queue.size());
-                        // 取出佇列數據
-                        uploadTime = uploadTime_queue.poll();
-                        uploadAx = uploadAx_queue.poll();
-                        uploadAy = uploadAy_queue.poll();
-                        uploadAz = uploadAz_queue.poll();
-
-                        if (uploadTime!= null) {
-                            if (uploadTimeG != null) {
-                                if (uploadTimeG.equals(""))
-                                    uploadTimeG = uploadTimeG_queue.poll();
-                                if (Double.parseDouble(uploadTime.substring(17)) >= Double.parseDouble(uploadTimeG.substring(17))) {
-                                    uploadGx = uploadGx_queue.poll();
-                                    uploadGy = uploadGy_queue.poll();
-                                    uploadGz = uploadGz_queue.poll();
-                                    if (uploadTimeG_queue.size() > 0)
-                                        uploadTimeG = uploadTimeG_queue.poll();
-                                } else {
-                                    uploadGx = null;
-                                    uploadGy = null;
-                                    uploadGz = null;
-                                }
-                            }
-                            if (uploadTimeR != null) {
-                                if (uploadTimeR.equals(""))
-                                    uploadTimeR = uploadTimeR_queue.poll();
-                                if (Double.parseDouble(uploadTime.substring(17)) >= Double.parseDouble(uploadTimeR.substring(17))) {
-                                    uploadRx = uploadRx_queue.poll();
-                                    uploadRy = uploadRy_queue.poll();
-                                    uploadRz = uploadRz_queue.poll();
-                                    if (uploadTimeR_queue.size() > 0)
-                                        uploadTimeR = uploadTimeR_queue.poll();
-                                } else {
-                                    uploadRx = "";
-                                    uploadRy = "";
-                                    uploadRz = "";
-                                }
-                            }
+                        //Log.d("[Upload]", "<Queue> " + uploadTime_queue.size());
+                        if (uploadTime_queue.size() >= saveSize) {
+                            saveFlag = true;
                         }
 
-                        if (uploadTime != null && uploadAx != null && uploadGx != null) {
-                        //if (uploadTime != null && uploadAx != null && uploadGx != null && uploadRx != null) {
-                            uploadIndex += 1;
-                            String saveText = uploadIndex + "," + uploadTime + "," +
-                                    uploadAx + "," + uploadAy + "," + uploadAz + "," +
-                                    uploadGx + "," + uploadGy + "," + uploadGz + "," +
-                                    uploadRx + "," + uploadRy + "," + uploadRz + "," + phoneNum + "\n";
-                            upload_queue.offer(saveText);
-                            uploadText = upload_queue.poll();
-                            writer.write(uploadText);
-                            Log.d("[File Out]", "<Success> " + uploadText);
+                        while (saveFlag) {
+                            // 取出佇列數據
+                            if (uploadTime_queue.size() > 0) {
+                                //Log.d("[Upload]", "<Queue-B> " + uploadAx_queue.size() + "/" + uploadAy_queue.size() + "/" + uploadAz_queue.size());
+                                uploadTime = uploadTime_queue.poll();
+                                uploadAx = uploadAx_queue.poll();
+                                uploadAy = uploadAy_queue.poll();
+                                uploadAz = uploadAz_queue.poll();
+                                //Log.d("[Upload]", "<Queue-A> " + uploadAx_queue.size() + "/" + uploadAy_queue.size() + "/" + uploadAz_queue.size());
+                                //Log.d("[Upload]", "<Queue-S> " + uploadAx + "/" + uploadAy + "/" + uploadAz);
+                            } else {
+                                uploadTime = null;
+                                uploadAx = null;
+                                uploadAy = null;
+                                uploadAz = null;
+                            }
+                            if (uploadTime != null && !uploadTime.equals("")) {
+                                if (uploadTimeG != null) {
+                                    if (uploadTimeG.equals(""))
+                                        uploadTimeG = uploadTimeG_queue.poll();
+                                    if (Double.parseDouble(uploadTime.substring(17)) >= Double.parseDouble(uploadTimeG.substring(17))) {
+                                        uploadGx = uploadGx_queue.poll();
+                                        uploadGy = uploadGy_queue.poll();
+                                        uploadGz = uploadGz_queue.poll();
+                                        if (uploadTimeG_queue.size() > 0)
+                                            uploadTimeG = uploadTimeG_queue.poll();
+                                    } else {
+                                        uploadGx = null;
+                                        uploadGy = null;
+                                        uploadGz = null;
+                                    }
+                                }
+                                if (uploadTimeR != null) {
+                                    if (uploadTimeR.equals(""))
+                                        uploadTimeR = uploadTimeR_queue.poll();
+                                    if (Double.parseDouble(uploadTime.substring(17)) >= Double.parseDouble(uploadTimeR.substring(17))) {
+                                        uploadRx = uploadRx_queue.poll();
+                                        uploadRy = uploadRy_queue.poll();
+                                        uploadRz = uploadRz_queue.poll();
+                                        if (uploadTimeR_queue.size() > 0)
+                                            uploadTimeR = uploadTimeR_queue.poll();
+                                    } else {
+                                        uploadRx = null;
+                                        uploadRy = null;
+                                        uploadRz = null;
+                                    }
+                                }
+                            }
+                            if (uploadTime != null && uploadAx != null && uploadGx != null) {
+                            //if (uploadTime != null && uploadAx != null && uploadGx != null && uploadRx != null) {
+                                uploadIndex += 1;
+                                savedSize += 1;
+                                String saveText = uploadIndex + "," + uploadTime + "," +
+                                        uploadAx + "," + uploadAy + "," + uploadAz + "," +
+                                        uploadGx + "," + uploadGy + "," + uploadGz + "," +
+                                        uploadRx + "," + uploadRy + "," + uploadRz + "," + phoneNum + "\n";
+                                writer.write(saveText);
+                                Log.d("[File Out]", "<Success> " + saveText);
+                            }
+
+                            if (savedSize >= saveSize) {
+                                saveFlag = false;
+                                savedSize = 0;
+                                break;
+                            }
                         }
                     } else if (stopFlag){
                         writer.close();
@@ -574,8 +604,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         break;
                     }
                 }
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+                error.setText("Error1: " + e.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
+                error.setText("Error: " + e.getMessage() + "\n" + e.getLocalizedMessage());
             }
         }
     };
