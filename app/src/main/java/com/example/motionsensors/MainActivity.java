@@ -148,6 +148,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     Boolean errorFlag = false;
     Boolean saveFlag = true;
     Boolean sendFlag = false;
+    Boolean stopFlag = false;
     Boolean matchPoint = false;
 
     public static Handler handler = new Handler();
@@ -206,6 +207,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 uploadFlag = true;
                 sendFlag = false;
                 errorFlag = false;
+                stopFlag = false;
             }
         });
 
@@ -218,6 +220,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 uploadFlag = false;
                 sendFlag = true;
                 errorFlag = false;
+                stopFlag = true;
             }
         });
 
@@ -229,6 +232,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 uploadFlag = true;
                 sendFlag = false;
                 errorFlag = false;
+                stopFlag = false;
             }
         });
 
@@ -293,7 +297,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     uploadAy_queue.offer(strAy);
                     uploadAz_queue.offer(strAz);
                 }
-                Log.d("[Time_upload]", "[uploadTime]: " + preTimeA);
+                // Log.d("[Time_upload]", "[uploadTime]: " + preTimeA);
 
                 endTimeA = (int) (System.currentTimeMillis() + offset);
                 TimeA = endTimeA - startTimeA;
@@ -317,7 +321,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
 
             countA++;
-            Log.d("[Count_Acc]", "\tcountA: " + countA);
+            //Log.d("[Count_Acc]", "\tcountA: " + countA);
 
             // 移除重力
             for (int i = 0; i < 3; i++) {
@@ -495,14 +499,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Runnable uploadData = new Runnable() {
         @Override
         public void run() {
-            while (true) {
-                if (uploadA == 1 && uploadG == 1 && uploadR == 1) {
-                    uploadA = 0;
-                    uploadG = 0;
-                    uploadR = 0;
+            try {
+                String file_name = "//sdcard//testfile.txt";
+
+                File file = new File(file_name);
+                if (!file.exists()) {
+                    file.createNewFile();
+                }
+                // 覆蓋檔案
+                //OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");// 覆蓋檔案
+                // 追加檔案
+                OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"); // 追加檔案
+                BufferedWriter writer = new BufferedWriter(os);
+
+                while (true) {
                     if (uploadFlag) {
                         //Log.d("[Upload]", "<SEND!!!!!>");
 
+                        Log.d("[Upload]", "<Queue> " + uploadTime_queue.size());
                         // 取出佇列數據
                         uploadTime = uploadTime_queue.poll();
                         uploadAx = uploadAx_queue.poll();
@@ -510,32 +524,35 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         uploadAz = uploadAz_queue.poll();
 
                         if (uploadTime!= null) {
-                            if (uploadTimeG.equals(""))
-                                uploadTimeG = uploadTimeG_queue.poll();
-                            if (uploadTime.equals(uploadTimeG) || Double.parseDouble(uploadTime.substring(17)) > Double.parseDouble(uploadTimeG.substring(17))) {
-                                uploadGx = uploadGx_queue.poll();
-                                uploadGy = uploadGy_queue.poll();
-                                uploadGz = uploadGz_queue.poll();
-                                if (uploadTimeG_queue.size() > 0)
+                            if (uploadTimeG != null) {
+                                if (uploadTimeG.equals(""))
                                     uploadTimeG = uploadTimeG_queue.poll();
-                            } else {
-                                uploadGx = null;
-                                uploadGy = null;
-                                uploadGz = null;
+                                if (Double.parseDouble(uploadTime.substring(17)) >= Double.parseDouble(uploadTimeG.substring(17))) {
+                                    uploadGx = uploadGx_queue.poll();
+                                    uploadGy = uploadGy_queue.poll();
+                                    uploadGz = uploadGz_queue.poll();
+                                    if (uploadTimeG_queue.size() > 0)
+                                        uploadTimeG = uploadTimeG_queue.poll();
+                                } else {
+                                    uploadGx = null;
+                                    uploadGy = null;
+                                    uploadGz = null;
+                                }
                             }
-
-                            if (uploadTimeR.equals(""))
-                                uploadTimeR = uploadTimeR_queue.poll();
-                            if (uploadTime.equals(uploadTimeR) || Double.parseDouble(uploadTime.substring(17)) > Double.parseDouble(uploadTimeR.substring(17))) {
-                                uploadRx = uploadRx_queue.poll();
-                                uploadRy = uploadRy_queue.poll();
-                                uploadRz = uploadRz_queue.poll();
-                                if (uploadTimeR_queue.size() > 0)
+                            if (uploadTimeR != null) {
+                                if (uploadTimeR.equals(""))
                                     uploadTimeR = uploadTimeR_queue.poll();
-                            } else {
-                                uploadRx = "";
-                                uploadRy = "";
-                                uploadRz = "";
+                                if (Double.parseDouble(uploadTime.substring(17)) >= Double.parseDouble(uploadTimeR.substring(17))) {
+                                    uploadRx = uploadRx_queue.poll();
+                                    uploadRy = uploadRy_queue.poll();
+                                    uploadRz = uploadRz_queue.poll();
+                                    if (uploadTimeR_queue.size() > 0)
+                                        uploadTimeR = uploadTimeR_queue.poll();
+                                } else {
+                                    uploadRx = "";
+                                    uploadRy = "";
+                                    uploadRz = "";
+                                }
                             }
                         }
 
@@ -548,30 +565,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                     uploadRx + "," + uploadRy + "," + uploadRz + "," + phoneNum + "\n";
                             upload_queue.offer(saveText);
                             uploadText = upload_queue.poll();
-
-                            if (uploadText != null) {
-                                try {
-                                    String file_name = "//sdcard//testfile.txt";
-
-                                    File file = new File(file_name);
-                                    if (!file.exists()) {
-                                        file.createNewFile();
-                                    }
-                                    // 覆蓋檔案
-                                    //OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");// 覆蓋檔案
-                                    // 追加檔案
-                                    OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"); // 追加檔案
-                                    BufferedWriter writer = new BufferedWriter(os);
-                                    writer.write(uploadText);
-                                    writer.close();
-                                    Log.d("[File Out]", "<Success> " + uploadText);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
+                            writer.write(uploadText);
+                            Log.d("[File Out]", "<Success> " + uploadText);
                         }
+                    } else if (stopFlag){
+                        writer.close();
+                        Log.d("[File Out]", "<Close>");
+                        break;
                     }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     };
