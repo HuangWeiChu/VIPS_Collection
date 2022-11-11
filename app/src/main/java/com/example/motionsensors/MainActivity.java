@@ -503,8 +503,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     if (uploadFlag) {
                         //Log.d("[Upload]", "<SEND!!!!!>");
 
-                        OkHttpClient client = new OkHttpClient();
-
                         // 取出佇列數據
                         uploadTime = uploadTime_queue.poll();
                         uploadAx = uploadAx_queue.poll();
