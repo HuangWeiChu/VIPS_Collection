@@ -543,119 +543,36 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                         if (uploadTime != null && uploadAx != null && uploadGx != null) {
                         //if (uploadTime != null && uploadAx != null && uploadGx != null && uploadRx != null) {
-                            if (!saveFlag) {
-                                String url = "http://140.134.26.138/VIPS/Msec/updateAcc" + phoneNum + ".php?" +
-                                        "accx=" + uploadAx + "&accy=" + uploadAy + "&accz=" + uploadAz +
-                                        "&gyrx=" + uploadGx + "&gyry=" + uploadGy + "&gyrz=" + uploadGz +
-                                        "&phone=" + phoneNum + "&date=" + uploadTime;
+                            uploadIndex += 1;
+                            String saveText = uploadIndex + "," + uploadTime + "," +
+                                    uploadAx + "," + uploadAy + "," + uploadAz + "," +
+                                    uploadGx + "," + uploadGy + "," + uploadGz + "," +
+                                    uploadRx + "," + uploadRy + "," + uploadRz + "," + phoneNum + "\n";
+                            upload_queue.offer(saveText);
+                            uploadText = upload_queue.poll();
 
-                                //Log.d("[Upload]", "<Time> " + uploadTime);
-                                //Log.d("[Upload]", "<URL> " + url);
+                            if (uploadText != null) {
+                                try {
+                                    String file_name = "//sdcard//testfile.txt";
 
-                                Request request = new Request.Builder()
-                                        .url(url)
-                                        .build();
-
-                                client.newCall(request).enqueue(new Callback() {
-                                    @Override
-                                    public void onFailure(Call call, IOException e) {
-                                        errorFlag = true;
-                                        myResponse = "<html><i>" + e.getMessage() + "</i></html>";
-                                        Log.d("[Upload]", "<Error> " + e.getMessage());
-                                        Log.e("[ERROR]!!!!!", "Failure", e);
-                                        e.printStackTrace();
+                                    File file = new File(file_name);
+                                    if (!file.exists()) {
+                                        file.createNewFile();
                                     }
-
-                                    @Override
-                                    public void onResponse(Call call, Response response) throws IOException {
-                                        myResponse = response.body().string();
-                                        if (response.isSuccessful()) {
-                                            MainActivity.this.runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    MainActivity.this.response.setText("uploading...");
-                                                    upload.setText(myResponse);
-                                                }
-                                            });
-                                            Log.d("[Upload]", "<Success> " + myResponse);
-                                        } else {
-                                            errorFlag = true;
-                                            Log.d("[Upload]", "<NotSuccess>");
-                                            Log.e("[ERROR]!!!!!", "NotSuccess");
-                                        }
-                                    }
-                                });
-
-                                // 當傳送錯誤時轉跳頁面
-                                if (errorFlag) {
-                                    errorFlag = false;
-                                    Intent intent = new Intent();
-                                    intent.setClass(MainActivity.this, TestActivity.class);
-                                    startActivity(intent);
-                                }
-                            } else {
-                                uploadIndex += 1;
-                                String saveText = uploadIndex + "," + uploadTime + "," +
-                                        uploadAx + "," + uploadAy + "," + uploadAz + "," +
-                                        uploadGx + "," + uploadGy + "," + uploadGz + "," +
-                                        uploadRx + "," + uploadRy + "," + uploadRz + "," + phoneNum + "\n";
-                                upload_queue.offer(saveText);
-                                uploadText = upload_queue.poll();
-
-                                if (uploadText != null) {
-                                    try {
-                                        String file_name = "//sdcard//testfile.txt";
-
-                                        File file = new File(file_name);
-                                        if (!file.exists()) {
-                                            file.createNewFile();
-                                        }
-                                        // 覆蓋檔案
-                                        //OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");// 覆蓋檔案
-                                        // 追加檔案
-                                        OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"); // 追加檔案
-                                        BufferedWriter writer = new BufferedWriter(os);
-                                        writer.write(uploadText);
-                                        writer.close();
-                                        Log.d("[File Out]", "<Success> " + uploadText);
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
+                                    // 覆蓋檔案
+                                    //OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");// 覆蓋檔案
+                                    // 追加檔案
+                                    OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"); // 追加檔案
+                                    BufferedWriter writer = new BufferedWriter(os);
+                                    writer.write(uploadText);
+                                    writer.close();
+                                    Log.d("[File Out]", "<Success> " + uploadText);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
                             }
                         }
                     }
-                }
-
-                if (!saveFlag && sendFlag) {
-                    try {
-                        String file_name = "//sdcard//testfile.txt";
-                        String file_content = "";
-                        String line;
-
-                        File file = new File(file_name);
-                        if (file.isFile() && file.exists()) {
-                            // 讀取檔案
-                            FileInputStream fis = new FileInputStream(file);
-                            InputStreamReader sr = new InputStreamReader(fis, "UTF-8");
-                            BufferedReader br = new BufferedReader(sr);
-                            // 印出檔案
-                            while ((line = br.readLine()) != null) {
-                                file_content += line + "\n";
-                            }
-                            sr.close();
-                            Log.d("[File In]", file_content);
-                        } else {
-                            Log.d("[File]",  "Not exist!");
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    String url = "http://140.134.26.138/VIPS/Msec/uploadFile.php?" +
-                            "fileToUpload=" + "testfile.txt";
-                    Request request = new Request.Builder()
-                            .url(url)
-                            .build();
                 }
             }
         }
